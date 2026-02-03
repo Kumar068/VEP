@@ -3,6 +3,9 @@ import { gsap } from 'gsap';
 
 const HeroSection: React.FC = () => {
    const containerRef = useRef<HTMLDivElement>(null);
+   const videoRef = useRef<HTMLDivElement>(null);
+   const textRef = useRef<HTMLDivElement>(null);
+   const videoPlayerRef = useRef<HTMLVideoElement>(null);
 
   // We use useLayoutEffect to prevent a "flash" of unstyled content
   useLayoutEffect(() => {
@@ -38,23 +41,86 @@ const HeroSection: React.FC = () => {
         { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.out" },
         "-=0.2"
       )
-      // 6. Scroll indicator
+      // 6. Video player reveal
+      .fromTo(".hero-video",
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 1.0 },
+        "-=0.1"
+      )
+      // 7. Scroll indicator
       .fromTo(".scroll-indicator",
         { height: 0, opacity: 0 },
         { height: "4rem", opacity: 0.5, duration: 1 },
         "-=0.4"
+      )
+      // 8. Text reveal animations
+      .fromTo(".text-reveal-line",
+        { x: (index) => index % 2 === 0 ? -100 : 100, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" },
+        "-=0.2"
       );
     }, containerRef); // Scope the selector to this ref
 
-    return () => ctx.revert(); // Cleanup on unmount
+    // Scroll effect for video width increase and downward movement
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+      const maxScroll = window.innerHeight; // One screen height
+      const scrollProgress = Math.min(scrollY / maxScroll, 1);
+      
+      if (videoRef.current) {
+        // Increase width from max-w-4xl to max-w-6xl as scroll progresses
+        const maxWidth = 1024 + (1536 - 1024) * scrollProgress; // 4xl to 6xl
+        videoRef.current.style.maxWidth = `${maxWidth}px`;
+        
+        // Slightly increase scale for dramatic effect
+        const scale = 1 + (0.2 * scrollProgress);
+        
+        // Move video down as scroll progresses (parallax effect)
+        const translateY = scrollY * 0.48; // Move down at 40% of scroll speed for more downward movement
+        
+        videoRef.current.style.transform = `scale(${scale}) translateY(${translateY}px)`;
+      }
+      
+      // Reveal text as video scrolls down
+      if (textRef.current) {
+        // Text starts revealing after 200px scroll and fully visible at 600px
+        const textRevealProgress = Math.max(0, Math.min((scrollY - 200) / 400, 1));
+        textRef.current.style.opacity = textRevealProgress.toString();
+        
+        // Slight upward movement for text as it reveals
+        const textTranslateY = 20 * (1 - textRevealProgress);
+        textRef.current.style.transform = `translateY(${textTranslateY}px)`;
+      }
+      
+      // Autoplay video when scrolled
+      if (videoPlayerRef.current) {
+        // Start playing when user scrolls past 100px
+        if (scrollY > 100 && videoPlayerRef.current.paused) {
+          videoPlayerRef.current.play().catch(err => {
+            console.log('Autoplay prevented:', err);
+          });
+        }
+        // Pause when scrolled back to top
+        else if (scrollY <= 100 && !videoPlayerRef.current.paused) {
+          videoPlayerRef.current.pause();
+        }
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      ctx.revert();
+      window.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
    <div 
         ref={containerRef}
-        className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4"
+        className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 bg-transparent pt-60"
       >
-        <div className="text-center">
+        <div className="text-center mb-12">
           {/* Dynamic video editing elements */}
           <div className="flex justify-center items-center gap-6 mb-8">
             <div className="video-element relative">
@@ -120,10 +186,35 @@ const HeroSection: React.FC = () => {
           </div>
         </div>
 
-        <div className="absolute bottom-12 text-center">
-          <span className="scroll-indicator text-white/40 text-sm animate-pulse">
-            Scroll to explore
-          </span>
+        {/* Video Player in Hero Section */}
+        <div ref={videoRef} className="hero-video relative z-20 w-[80%] h-[60vh] bg-gray-900/50 backdrop-blur-sm rounded-lg shadow-2xl overflow-hidden border border-gray-700/50">
+          {/* Video Frame Corners */}
+          <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-blue-400 rounded-tl-lg"></div>
+          <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-blue-400 rounded-tr-lg"></div>
+          <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-blue-400 rounded-bl-lg"></div>
+          <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-blue-400 rounded-br-lg"></div>
+
+          {/* Video Element */}
+          <video
+            ref={videoPlayerRef}
+            className="absolute inset-0 w-full h-full object-cover rounded-lg"
+            muted
+            loop
+            playsInline
+            poster="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1920' height='1080'%3E%3Crect width='1920' height='1080' fill='%23111827'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%23ffffff' font-family='Arial' font-size='24'%3EVideo Content%3C/text%3E%3C/svg%3E"
+          >
+            <source src="/video/showreel.mp4" type="video/mp4" />
+            <source src="/video/showreel.webm" type="video/webm" />
+            Your browser does not support the video tag.
+          </video>
+        </div>
+
+        {/* Text content to be revealed behind video */} 
+        <div ref={textRef} className="absolute z-10 text-center text-white/90 text-2xl md:text-6xl font-bold leading-tight opacity-0 pointer-events-none max-w-4xl mt-16">
+          <p className="text-reveal-line mb-2">Crafting visual stories</p>
+          <p className="text-reveal-line mb-2">that resonate deeply</p>
+          <p className="text-reveal-line mb-2">and leave a lasting</p>
+          <p className="text-reveal-line">emotional impact.</p>
         </div>
       </div>
   );
