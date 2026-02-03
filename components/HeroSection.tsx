@@ -52,7 +52,7 @@ const HeroSection: React.FC = () => {
   return (
    <div 
         ref={containerRef}
-        className="relative z-50 min-h-screen flex flex-col justify-center items-center px-4"
+        className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4"
       >
         <div className="text-center">
           {/* Dynamic video editing elements */}

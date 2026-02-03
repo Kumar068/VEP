@@ -59,7 +59,7 @@ const Header: React.FC = () => {
     >
       {/* BACKGROUND BLUR STRIP */}
       {/* We separate this to keep the text sharp while blurring the background */}
-      <div className="absolute inset-0 bg-black/10 backdrop-blur-sm border-b border-white/5 pointer-events-none" />
+      <div className="absolute inset-0 bg-black/10 backdrop-blur-sm border-b border-white/5" />
 
       {/* 1. LOGO AREA */}
       <div ref={logoRef} className="relative z-10 flex items-center gap-2 cursor-pointer group">
