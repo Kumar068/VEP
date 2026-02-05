@@ -38,9 +38,9 @@ const ShowreelPage: React.FC = () => {
   }, []);
 
   return (
-    <div ref={sectionRef} className="relative w-full flex items-center justify-center overflow-hidden bg-transparent" style={{ minHeight: '200px' }}>
+    <div ref={sectionRef} className="relative w-full flex items-center justify-center bg-transparent" style={{ minHeight: '200px' }}>
       {/* Background Moving Text */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-5 text-gray-600 text-9xl font-extrabold whitespace-nowrap overflow-hidden">
+      <div className="absolute inset-0 flex items-center justify-center opacity-5 text-gray-600 text-9xl font-extrabold whitespace-nowrap -translate-y-48">
         <div className="animate-marquee-slow">
           POST PRODUCTION VISUAL ALCHEMIST POST PRODUCTION VISUAL ALCHEMIST
         </div>

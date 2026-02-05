@@ -231,7 +231,7 @@ const HeroSection: React.FC = () => {
       </div>
 
       {/* Add proper spacing before ShowreelPage */}
-      <div className="h-[100vh]"></div>
+      <div className="h-[50vh]"></div>
     </div>
   );
 };
