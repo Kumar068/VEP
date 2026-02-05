@@ -4,6 +4,7 @@ import InteractiveGridBackground from './components/InteractiveGridBackground';
 import Header from './components/header';
 import HeroSection from './components/HeroSection';
 import ShowreelPage from './components/ShowreelPage';
+import HorizontalScrollSection from './components/HorizontalScrollSection';
 
 function App() {
 
@@ -13,6 +14,7 @@ function App() {
       <Header />
       <HeroSection />
       <ShowreelPage />
+      <HorizontalScrollSection />
     </div>
   );
 }
