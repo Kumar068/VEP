@@ -5,6 +5,7 @@ import Header from './components/header';
 import HeroSection from './components/HeroSection';
 import ShowreelPage from './components/ShowreelPage';
 import HorizontalScrollSection from './components/HorizontalScrollSection';
+import StopMotionSection from './components/StopMotionSection';
 
 function App() {
 
@@ -15,6 +16,7 @@ function App() {
       <HeroSection />
       <ShowreelPage />
       <HorizontalScrollSection />
+      <StopMotionSection />
     </div>
   );
 }
