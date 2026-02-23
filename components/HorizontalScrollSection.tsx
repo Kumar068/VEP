@@ -1,8 +1,9 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 // Text Animation Types
 type TextAnimationType = 'fade-up' | 'glitch' | 'cinema-mask' | 'focus' | 'condense' | 'outline-fill';
@@ -15,13 +16,18 @@ const items: ScrollItem[] = [
   { type: 'text', content: "THE ART OF", animation: 'fade-up' },
   { type: 'sticker', variant: 'rec' },
   { type: 'text', content: "VISUAL", animation: 'glitch' },
+  { type: 'text', content: "ALCHEMY", animation: 'cinema-mask' },
   { type: 'sticker', variant: 'timeline' },
-  { type: 'text', content: "STORYTELLING", animation: 'cinema-mask' },
+  { type: 'text', content: "KINETIC", animation: 'focus' },
+  { type: 'text', content: "BALANCE", animation: 'condense' },
   { type: 'sticker', variant: 'waveform' },
-  { type: 'text', content: "PRECISION", animation: 'focus' },
+  { type: 'text', content: "SOUND", animation: 'fade-up' },
+  { type: 'text', content: "SCULPTING", animation: 'outline-fill' },
   { type: 'sticker', variant: 'cut' },
-  { type: 'text', content: "MEETS", animation: 'condense' },
-  { type: 'text', content: "CREATIVITY", animation: 'outline-fill' }
+  { type: 'text', content: "THE INVISIBLE", animation: 'cinema-mask' },
+  { type: 'text', content: "CUT", animation: 'glitch' },
+  { type: 'text', content: "SUBLIMINAL", animation: 'focus' },
+  { type: 'text', content: "ENERGY", animation: 'condense' }
 ];
 
 // Interactive Wrapper for Stickers
@@ -80,127 +86,123 @@ const StickerWrapper: React.FC<{ children: React.ReactNode }> = ({ children }) =
 const TextAnimator: React.FC<{ content: string; animation: TextAnimationType; fontSizeClass: string; containerTween: gsap.core.Tween | null }> = ({ content, animation, fontSizeClass, containerTween }) => {
   const ref = useRef<HTMLDivElement>(null);
 
-  useLayoutEffect(() => {
+  useGSAP((context) => {
     const el = ref.current;
     if (!el || !containerTween) return;
 
-    const ctx = gsap.context(() => {
-      // Target the specific element for animation
-      const target = el.querySelector('.anim-target');
-      if (!target) return;
+    // Target the specific element for animation
+    const target = el.querySelector('.anim-target');
+    if (!target) return;
 
-      switch (animation) {
-        case 'fade-up':
-          gsap.fromTo(target,
-            { y: 100, opacity: 0 },
-            {
-              y: 0, opacity: 1, duration: 1, ease: 'power3.out',
-              scrollTrigger: {
-                trigger: el,
-                containerAnimation: containerTween,
-                start: "left 80%",
-                toggleActions: "play reverse play reverse",
-              }
+    switch (animation) {
+      case 'fade-up':
+        gsap.fromTo(target,
+          { y: 100, opacity: 0 },
+          {
+            y: 0, opacity: 1, duration: 0.4, ease: 'power3.out',
+            scrollTrigger: {
+              trigger: el,
+              containerAnimation: containerTween,
+              start: "left 125%",
+              toggleActions: "play reverse play reverse",
             }
-          );
-          break;
+          }
+        );
+        break;
 
-        case 'cinema-mask':
-          // Animate clip-path to reveal
-          gsap.fromTo(target,
-            { clipPath: "inset(0 50% 0 50%)" },
-            {
-              clipPath: "inset(0 0% 0 0%)", duration: 1, ease: 'power4.inOut',
-              scrollTrigger: {
-                trigger: el,
-                containerAnimation: containerTween,
-                start: "left 70%",
-                toggleActions: "play reverse play reverse"
-              }
+      case 'cinema-mask':
+        // Animate clip-path to reveal
+        gsap.fromTo(target,
+          { clipPath: "inset(0 50% 0 50%)" },
+          {
+            clipPath: "inset(0 0% 0 0%)", duration: 0.5, ease: 'power4.inOut',
+            scrollTrigger: {
+              trigger: el,
+              containerAnimation: containerTween,
+              start: "left 125%",
+              toggleActions: "play reverse play reverse",
             }
-          );
-          break;
+          }
+        );
+        break;
 
-        case 'focus':
-          gsap.fromTo(target,
-            { filter: "blur(20px)", opacity: 0 },
-            {
-              filter: "blur(0px)", opacity: 1, duration: 1,
-              scrollTrigger: {
-                trigger: el, containerAnimation: containerTween,
-                start: "left 70%", end: "center center", scrub: 1
-              }
-            }
-          );
-          break;
-
-        case 'condense':
-          gsap.fromTo(target,
-            { letterSpacing: "1em", opacity: 0 },
-            {
-              letterSpacing: "normal", opacity: 1, duration: 1,
-              scrollTrigger: {
-                trigger: el, containerAnimation: containerTween,
-                start: "left 80%", end: "center center", scrub: 1
-              }
-            }
-          );
-          break;
-
-        case 'outline-fill':
-          gsap.to(el.querySelector('.fill-layer'), {
-            clipPath: "inset(0 0% 0 0)",
+      case 'focus':
+        gsap.fromTo(target,
+          { filter: "blur(20px)", opacity: 0 },
+          {
+            filter: "blur(0px)", opacity: 1, duration: 1,
             scrollTrigger: {
               trigger: el, containerAnimation: containerTween,
-              start: "left 60%", end: "right 60%", scrub: 1
+              start: "left 125%", end: "left 80%", scrub: 0.2
             }
-          });
-          break;
+          }
+        );
+        break;
 
-        case 'glitch':
-          // Continuous glitch effect triggered when in view
-          ScrollTrigger.create({
-            trigger: el,
-            containerAnimation: containerTween,
-            start: "left 90%",
-            onEnter: () => {
-              gsap.to(el.querySelectorAll('.glitch-layer'), {
-                keyframes: [
-                  { x: 0, opacity: 1 },
-                  { x: -5, opacity: 0.8, skewX: 20, duration: 0.1 },
-                  { x: 5, opacity: 0.8, skewX: -20, duration: 0.1 },
-                  { x: 0, opacity: 1, skewX: 0, duration: 0.1 },
-                  { duration: 2 } // delay
-                ],
-                repeat: -1
-              });
-            },
-            onLeave: () => gsap.killTweensOf(el.querySelectorAll('.glitch-layer')),
-            onEnterBack: () => {
-              gsap.to(el.querySelectorAll('.glitch-layer'), {
-                keyframes: [
-                  { x: 0, opacity: 1 },
-                  { x: -5, opacity: 0.8, skewX: 20, duration: 0.1 },
-                  { x: 5, opacity: 0.8, skewX: -20, duration: 0.1 },
-                  { x: 0, opacity: 1, skewX: 0, duration: 0.1 },
-                  { duration: 2 }
-                ],
-                repeat: -1
-              });
-            },
-            onLeaveBack: () => gsap.killTweensOf(el.querySelectorAll('.glitch-layer'))
-          });
-          break;
-      }
+      case 'condense':
+        gsap.fromTo(target,
+          { letterSpacing: "1em", opacity: 0 },
+          {
+            letterSpacing: "normal", opacity: 1, duration: 1,
+            scrollTrigger: {
+              trigger: el, containerAnimation: containerTween,
+              start: "left 125%", end: "left 80%", scrub: 0.2
+            }
+          }
+        );
+        break;
 
-    }, ref);
+      case 'outline-fill':
+        gsap.to(el.querySelector('.fill-layer'), {
+          clipPath: "inset(0 0% 0 0)",
+          scrollTrigger: {
+            trigger: el, containerAnimation: containerTween,
+            start: "left 125%", end: "left 80%", scrub: 0.2
+          }
+        });
+        break;
 
-    return () => ctx.revert();
-  }, [animation, containerTween]);
+      case 'glitch':
+        // Continuous glitch effect triggered when in view
+        ScrollTrigger.create({
+          trigger: el,
+          containerAnimation: containerTween,
+          start: "left 125%",
+          onEnter: () => {
+            gsap.to(el.querySelectorAll('.glitch-layer'), {
+              keyframes: [
+                { x: 0, opacity: 1 },
+                { x: -5, opacity: 0.8, skewX: 20, duration: 0.1 },
+                { x: 5, opacity: 0.8, skewX: -20, duration: 0.1 },
+                { x: 0, opacity: 1, skewX: 0, duration: 0.1 },
+                { duration: 1.5 } // faster cycle
+              ],
+              repeat: -1
+            });
+          },
+          onLeave: () => gsap.killTweensOf(el.querySelectorAll('.glitch-layer')),
+          onEnterBack: () => {
+            gsap.to(el.querySelectorAll('.glitch-layer'), {
+              keyframes: [
+                { x: 0, opacity: 1 },
+                { x: -5, opacity: 0.8, skewX: 20, duration: 0.1 },
+                { x: 5, opacity: 0.8, skewX: -20, duration: 0.1 },
+                { x: 0, opacity: 1, skewX: 0, duration: 0.1 },
+                { duration: 1.5 }
+              ],
+              repeat: -1
+            });
+          },
+          onLeaveBack: () => gsap.killTweensOf(el.querySelectorAll('.glitch-layer'))
+        });
+        break;
+    }
+
+  }, { dependencies: [animation, containerTween], scope: ref });
 
   // Render content based on animation type
   const renderContent = () => {
-    const commonClasses = `${fontSizeClass} font-black tracking-tighter leading-none whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 select-none anim-target`;
+    const commonClasses = `${fontSizeClass} font-black tracking-tighter leading-none whitespace-nowrap text-transparent bg-clip-text bg-gradient-to-b from-white to-white/40 select-none anim-target font-display uppercase`;
 
     switch (animation) {
       case 'outline-fill':
@@ -248,27 +250,24 @@ const HorizontalScrollSection: React.FC = () => {
   const triggerRef = useRef<HTMLDivElement>(null);
   const [horizTween, setHorizTween] = React.useState<gsap.core.Tween | null>(null);
 
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      const sections = gsap.utils.toArray(".scroll-section");
+  useGSAP((context) => {
+    const sections = gsap.utils.toArray(".scroll-section");
 
-      const tween = gsap.to(sections, {
-        xPercent: -100 * (sections.length - 1),
-        ease: "none",
-        scrollTrigger: {
-          trigger: triggerRef.current,
-          pin: true,
-          scrub: 1,
-          snap: 1 / (sections.length - 1),
-          // Shortened duration for faster scroll speed
-          end: () => "+=" + (triggerRef.current?.offsetWidth || 0) * 0.5,
-        }
-      });
-      setHorizTween(tween);
+    const tween = gsap.to(sections, {
+      x: () => -(triggerRef.current?.scrollWidth || 0) + window.innerWidth,
+      ease: "none",
+      scrollTrigger: {
+        trigger: triggerRef.current,
+        invalidateOnRefresh: true,
+        pin: true,
+        scrub: true,
+        start: "center center",
+        end: () => "+=" + (triggerRef.current?.scrollWidth || 0),
+      }
+    });
+    setHorizTween(tween);
 
-    }, sectionRef);
-
-    // Global Cursor Parallax Effect - Applied to Inner Content
+    // Mouse Parallax Logic
     const cursor = { x: 0, y: 0 };
     const moveCursor = (e: MouseEvent) => {
       cursor.x = (e.clientX / window.innerWidth - 0.5);
@@ -276,21 +275,29 @@ const HorizontalScrollSection: React.FC = () => {
     };
     window.addEventListener("mousemove", moveCursor);
 
-    gsap.ticker.add(() => {
-      // Animate inner content for parallax, NOT the wrapper which ScrollTrigger pins
-      gsap.to(".scroll-parallax-target", {
-        x: cursor.x * 50,  // Move heavily based on cursor
-        y: cursor.y * 30,
-        duration: 1,
-        ease: "power2.out",
-        overwrite: "auto",
-      });
-    });
+    const tickerFunc = () => {
+      // Only animate if targets exist in this context
+      const targets = context.selector?.(".scroll-parallax-target");
+      if (targets && targets.length > 0) {
+        gsap.to(targets, {
+          x: cursor.x * 50,
+          y: cursor.y * 30,
+          duration: 1,
+          ease: "power2.out",
+          overwrite: "auto",
+        });
+      }
+    };
 
-    return () => ctx.revert();
-  }, []);
+    gsap.ticker.add(tickerFunc);
 
-  // Helper to render stickers (re-integrated here to share scope/types if needed, but easier inline above or kept as is)
+    return () => {
+      window.removeEventListener("mousemove", moveCursor);
+      gsap.ticker.remove(tickerFunc);
+    };
+  }, { scope: sectionRef });
+
+  // Helper to render stickers
   const renderSticker = (variant: string) => {
     const content = (() => {
       switch (variant) {
@@ -344,7 +351,7 @@ const HorizontalScrollSection: React.FC = () => {
         case 'cut':
           return (
             <div className="relative text-white w-[30vh] h-[30vh] flex items-center justify-center">
-              <div className="text-[12vw] font-black opacity-10 select-none absolute">CUT</div>
+              <div className="text-[8vw] font-black opacity-10 select-none absolute">CUT</div>
               <div className="relative z-10 w-full h-full flex items-center justify-center">
                 <div className="w-1 h-full bg-red-600 rotate-12 relative shadow-[0_0_20px_rgba(220,38,38,0.8)]">
                   <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-black text-red-500 border-2 border-red-500 px-4 py-1 font-mono font-bold text-xl -rotate-12 hover:bg-red-600 hover:text-white transition-colors duration-300">
@@ -363,21 +370,18 @@ const HorizontalScrollSection: React.FC = () => {
   };
 
   return (
-    <div ref={sectionRef} className="relative text-white overflow-hidden">
-      {/* Trigger Wrapper - Width depends on number of items */}
+    <div id="process" ref={sectionRef} className="relative text-white overflow-hidden py-40 z-10">
       <div
         ref={triggerRef}
-        className="h-screen flex flex-row flex-nowrap"
-        style={{ width: `${items.length * 100}vw` }}
+        className="flex flex-row flex-nowrap items-center h-screen"
+        style={{ width: 'fit-content' }}
       >
-
-        {/* Render Items */}
         {items.map((item, index) => {
           if (item.type === 'sticker') {
             return (
               <div
                 key={index}
-                className="scroll-section w-screen h-screen flex justify-center items-center shrink-0 relative overflow-hidden"
+                className="scroll-section px-[10vw] flex justify-center items-center shrink-0 relative"
               >
                 <div className="scroll-parallax-target">
                   {renderSticker(item.variant)}
@@ -386,18 +390,15 @@ const HorizontalScrollSection: React.FC = () => {
             );
           }
 
-          // Text Type
-          // Dynamic font size based on text length to prevent severe overflow
           const text = item.content;
           const isLong = text.length > 9;
-          const fontSizeClass = isLong ? "text-[12vw] md:text-[14vw]" : "text-[15vw] md:text-[20vw]";
+          const fontSizeClass = isLong ? "text-[6.5vw] md:text-[8vw]" : "text-[9.5vw] md:text-[12vw]";
 
           return (
             <div
               key={index}
-              className="scroll-section w-screen h-screen flex justify-center items-center shrink-0 relative overflow-hidden"
+              className="scroll-section px-[5vw] flex justify-center items-center shrink-0 relative"
             >
-              {/* Massive Text with Animation */}
               {horizTween && (
                 <TextAnimator
                   content={text}
@@ -409,7 +410,6 @@ const HorizontalScrollSection: React.FC = () => {
             </div>
           );
         })}
-
       </div>
     </div>
   );

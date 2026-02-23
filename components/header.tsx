@@ -1,5 +1,6 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { gsap } from 'gsap';
+import { useGSAP } from '@gsap/react';
 
 const Header: React.FC = () => {
   const headerRef = useRef<HTMLElement>(null);
@@ -7,31 +8,31 @@ const Header: React.FC = () => {
   const navRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLButtonElement>(null);
 
-  useEffect(() => {
+  useGSAP(() => {
     // Reveal Animation on Load
     const tl = gsap.timeline();
 
-    tl.fromTo(headerRef.current, 
+    tl.fromTo(headerRef.current,
       { y: -100, opacity: 0 },
       { y: 0, opacity: 1, duration: 1.2, ease: "power3.out" }
     )
-    .fromTo(logoRef.current,
-      { x: -20, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
-      "-=0.8"
-    )
-    .fromTo(".nav-link",
-      { y: -20, opacity: 0 },
-      { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "power2.out" },
-      "-=0.6"
-    )
-    .fromTo(ctaRef.current,
-      { x: 20, opacity: 0 },
-      { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
-      "-=0.6"
-    );
+      .fromTo(logoRef.current,
+        { x: -20, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+        "-=0.8"
+      )
+      .fromTo(".nav-link",
+        { y: -20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.5, stagger: 0.1, ease: "power2.out" },
+        "-=0.6"
+      )
+      .fromTo(ctaRef.current,
+        { x: 20, opacity: 0 },
+        { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
+        "-=0.6"
+      );
 
-  }, []);
+  }, { scope: headerRef });
 
   const handleLinkHover = (e: React.MouseEvent) => {
     // Subtle magnetic drift for links
@@ -52,8 +53,53 @@ const Header: React.FC = () => {
     });
   };
 
+  const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    const rect = btn.getBoundingClientRect();
+    const x = e.clientX - rect.left - rect.width / 2;
+    const y = e.clientY - rect.top - rect.height / 2;
+
+    gsap.to(btn, {
+      x: x * 0.3,
+      y: y * 0.3,
+      duration: 0.5,
+      ease: "power2.out"
+    });
+
+    // Animate the text slightly more for "depth"
+    const text = btn.querySelector('span');
+    if (text) {
+      gsap.to(text, {
+        x: x * 0.1,
+        y: y * 0.1,
+        duration: 0.5,
+        ease: "power2.out"
+      });
+    }
+  };
+
+  const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const btn = e.currentTarget;
+    gsap.to(btn, {
+      x: 0,
+      y: 0,
+      duration: 0.8,
+      ease: "elastic.out(1, 0.3)"
+    });
+
+    const text = btn.querySelector('span');
+    if (text) {
+      gsap.to(text, {
+        x: 0,
+        y: 0,
+        duration: 0.8,
+        ease: "elastic.out(1, 0.3)"
+      });
+    }
+  };
+
   return (
-    <header 
+    <header
       ref={headerRef}
       className="fixed top-0 left-0 w-full z-50 px-8 py-6 flex justify-between items-center"
     >
@@ -66,7 +112,7 @@ const Header: React.FC = () => {
         <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
           <div className="w-2.5 h-2.5 bg-white rounded-full group-hover:scale-110 transition-transform" />
         </div>
-        <span className="text-white font-medium tracking-wide text-sm uppercase">
+        <span className="text-white font-bold tracking-widest text-sm uppercase font-display">
           John Doe <span className="text-white/40 mx-1">/</span> Editor
         </span>
       </div>
@@ -77,7 +123,7 @@ const Header: React.FC = () => {
           <a
             key={item}
             href={`#${item.toLowerCase()}`}
-            className="nav-link text-gray-400 text-sm font-medium uppercase tracking-wider transition-colors"
+            className="nav-link text-gray-400 text-xs font-bold uppercase tracking-[0.2em] font-display transition-colors"
             onMouseEnter={handleLinkHover}
             onMouseLeave={handleLinkLeave}
           >
@@ -89,20 +135,22 @@ const Header: React.FC = () => {
       {/* 3. CTA & STATUS */}
       <div className="relative z-10 flex items-center gap-6">
         {/* Availability Indicator */}
-        <div className="hidden lg:flex items-center gap-2 text-xs font-medium text-white/60">
-          <span className="relative flex h-2 w-2">
+        <div className="hidden lg:flex items-center gap-2 text-[10px] font-bold text-white/40 uppercase tracking-widest font-display">
+          <span className="relative flex h-1.5 w-1.5">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-green-500"></span>
           </span>
-          Available for hire
+          Available
         </div>
 
         {/* Primary Button */}
-        <button 
+        <button
           ref={ctaRef}
-          className="group relative px-6 py-2 overflow-hidden rounded-full bg-white text-black text-sm font-bold tracking-wide hover:scale-105 transition-transform duration-300"
+          onMouseMove={handleMagneticMove}
+          onMouseLeave={handleMagneticLeave}
+          className="group relative px-8 py-3 overflow-hidden rounded-full bg-white text-black text-xs font-bold tracking-[0.2em] uppercase font-display transition-transform duration-300"
         >
-          <span className="relative z-10 group-hover:text-white transition-colors duration-300">Let's Talk</span>
+          <span className="relative z-10 group-hover:text-white transition-colors duration-300 inline-block">Let's Talk</span>
           <div className="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
         </button>
       </div>

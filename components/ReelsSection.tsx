@@ -1,8 +1,9 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const ReelsSection: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
@@ -12,24 +13,19 @@ const ReelsSection: React.FC = () => {
     // Replicate the video to create a seamless loop
     const videos = new Array(8).fill("/content/background.mp4");
 
-    useLayoutEffect(() => {
-        const ctx = gsap.context(() => {
-            if (!sliderRef.current || !containerRef.current) return;
+    useGSAP(() => {
+        if (!sliderRef.current || !containerRef.current) return;
 
-            const slider = sliderRef.current;
+        const slider = sliderRef.current;
 
-            // Basic horizontal marquee
-            tweenRef.current = gsap.to(slider, {
-                xPercent: -50,
-                ease: "none",
-                duration: 20, // Adjust speed here
-                repeat: -1,
-            });
-
-        }, containerRef);
-
-        return () => ctx.revert();
-    }, []);
+        // Basic horizontal marquee
+        tweenRef.current = gsap.to(slider, {
+            xPercent: -50,
+            ease: "none",
+            duration: 20, // Adjust speed here
+            repeat: -1,
+        });
+    }, { scope: containerRef });
 
     const handleMouseEnter = (e: React.MouseEvent<HTMLDivElement>) => {
         // Pause the marquee

@@ -19,19 +19,27 @@ const StopMotionSection: React.FC = () => {
 
     // Optimized Preloading
     useEffect(() => {
+        if (images.length === FRAME_COUNT) return;
+
         const loadedImages: HTMLImageElement[] = [];
         let count = 0;
+        let isCancelled = false;
 
         for (let i = 1; i <= FRAME_COUNT; i++) {
             const img = new Image();
             img.src = FRAME_URL(i);
             img.onload = () => {
+                if (isCancelled) return;
                 count++;
                 setFramesLoaded(count);
-                if (count === FRAME_COUNT) setImages(loadedImages);
+                if (count === FRAME_COUNT) {
+                    setImages(loadedImages);
+                }
             };
             loadedImages.push(img);
         }
+
+        return () => { isCancelled = true; };
     }, []);
 
     const renderFrame = (index: number) => {
@@ -133,7 +141,7 @@ const StopMotionSection: React.FC = () => {
     const bioText = "I am a creative developer passionate about building immersive digital experiences. With a keen eye for design and a strong technical background, I bridge the gap between visual aesthetics and functional performance.";
 
     return (
-        <div ref={containerRef} className="relative w-full h-screen bg-[#0a0a0a] overflow-hidden font-sans">
+        <div id="about" ref={containerRef} className="relative w-full h-screen bg-[#0a0a0a] overflow-hidden font-sans">
             {/* Minimalist Progress Loader */}
             {framesLoaded < FRAME_COUNT && (
                 <div className="absolute inset-0 flex items-center justify-center z-50 bg-black">
@@ -151,11 +159,11 @@ const StopMotionSection: React.FC = () => {
             {/* Content Overlay */}
             <div className="absolute inset-0 z-20 flex items-center justify-center md:justify-end md:pr-24 pointer-events-none">
                 <div ref={textRef} className="max-w-2xl mix-blend-difference text-white">
-                    <h2 className="text-7xl md:text-9xl font-black uppercase leading-[0.8] mb-8 tracking-tighter">
-                        ABOUT<br /><span className="text-outline-white">ME.</span>
+                    <h2 className="text-7xl md:text-9xl font-black uppercase leading-[0.8] mb-8 tracking-tighter font-display">
+                        ABOUT<br /><span className="text-transparent font-serif italic" style={{ WebkitTextStroke: '1px white' }}>ME.</span>
                     </h2>
 
-                    <p className="text-xl md:text-2xl font-medium leading-tight flex flex-wrap gap-x-2 overflow-hidden">
+                    <p className="text-xl md:text-2xl font-medium leading-tight flex flex-wrap gap-x-2 overflow-hidden font-display opacity-80">
                         {bioText.split(" ").map((word, i) => (
                             <span key={i} className="text-word inline-block origin-left">
                                 {word}
@@ -170,12 +178,6 @@ const StopMotionSection: React.FC = () => {
                 Scroll to explore sequence
             </div>
 
-            <style jsx>{`
-                .text-outline-white {
-                    color: transparent;
-                    -webkit-text-stroke: 1px white;
-                }
-            `}</style>
         </div>
     );
 };

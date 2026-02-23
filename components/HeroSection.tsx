@@ -1,5 +1,9 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useRef } from 'react';
 import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+
+gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const HeroSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -7,100 +11,84 @@ const HeroSection: React.FC = () => {
   const textRef = useRef<HTMLDivElement>(null);
   const videoPlayerRef = useRef<HTMLVideoElement>(null);
 
-  // We use useLayoutEffect to prevent a "flash" of unstyled content
-  useLayoutEffect(() => {
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
+  // We use useGSAP to handle GSAP context and animations safely in React
+  useGSAP(() => {
+    const tl = gsap.timeline({ defaults: { ease: "power3.out" } });
 
-      // 1. Target the text lines directly via class
-      tl.fromTo(".hero-line",
-        { y: "100%", opacity: 0, skewY: 7 }, // Start state
-        { y: "0%", opacity: 1, skewY: 0, duration: 1.2, stagger: 0.15 } // End state
+    // 1. Target the text lines directly via class
+    tl.fromTo(".hero-line",
+      { y: "100%", opacity: 0, skewY: 7 }, // Start state
+      { y: "0%", opacity: 1, skewY: 0, duration: 1.2, stagger: 0.15 } // End state
+    )
+      // 2. Subtext reveal
+      .fromTo(".hero-subtext",
+        { y: 20, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.8 },
+        "-=0.6"
       )
-        // 2. Subtext reveal
-        .fromTo(".hero-subtext",
-          { y: 20, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.8 },
-          "-=0.6"
-        )
-        // 3. Video editing elements scroll animation
-        .fromTo(".video-element",
-          { y: 50, opacity: 0, scale: 0.8 },
-          { y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.1 },
-          "-=0.4"
-        )
-        // 4. Stats grid scroll animation
-        .fromTo(".stat-item",
-          { y: 30, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.6, stagger: 0.05 },
-          "-=0.3"
-        )
-        // 5. Timeline scroll animation
-        .fromTo(".timeline-element",
-          { scaleX: 0, opacity: 0 },
-          { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.out" },
-          "-=0.2"
-        )
-        // 6. Video player reveal
-        .fromTo(".hero-video",
-          { scale: 0.8, opacity: 0 },
-          { scale: 1, opacity: 1, duration: 1.0 },
-          "-=0.1"
-        )
-        // 7. Text reveal animations
-        .fromTo(".text-reveal-line",
-          { x: (index) => index % 2 === 0 ? -100 : 100, opacity: 0 },
-          { x: 0, opacity: 1, duration: 0.6, stagger: 0.1, ease: "power2.out" },
-          "-=0.2"
-        );
-    }, containerRef); // Scope the selector to this ref
+      // 3. Video editing elements scroll animation
+      .fromTo(".video-element",
+        { y: 50, opacity: 0, scale: 0.8 },
+        { y: 0, opacity: 1, scale: 1, duration: 0.8, stagger: 0.1 },
+        "-=0.4"
+      )
+      // 4. Stats grid scroll animation
+      .fromTo(".stat-item",
+        { y: 30, opacity: 0 },
+        { y: 0, opacity: 1, duration: 0.6, stagger: 0.05 },
+        "-=0.3"
+      )
+      // 5. Timeline scroll animation
+      .fromTo(".timeline-element",
+        { scaleX: 0, opacity: 0 },
+        { scaleX: 1, opacity: 1, duration: 0.8, ease: "power2.out" },
+        "-=0.2"
+      )
+      // 6. Video player reveal
+      .fromTo(".hero-video",
+        { scale: 0.8, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 1.0 },
+        "-=0.5"
+      );
 
-    // Scroll effect for cinematic video sticky behavior and text reveal
-    const handleScroll = () => {
-      const scrollY = window.scrollY;
+    gsap.to(videoRef.current, {
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top",
+        end: "1000px top",
+        scrub: true,
+      },
+      scale: 1.1,
+      y: 800, // Move more significantly to open up space
+      ease: "none"
+    });
 
-      // Video Animation
-      if (videoRef.current) {
-        // Subtle scaling for depth - Capped at 1.1x
-        const scale = Math.min(1 + (scrollY * 0.0005), 1.1);
+    gsap.to(textRef.current, {
+      scrollTrigger: {
+        trigger: containerRef.current,
+        start: "top top",
+        end: "1000px top",
+        scrub: true,
+      },
+      opacity: 1,
+      y: 400, // Counter-scroll to keep it centered in the screen longer
+      ease: "none"
+    });
 
-        // "Sticky" effect: Move down with scroll - Capped at 150px
-        const translateY = Math.min(scrollY * 0.5, 450);
-
-        videoRef.current.style.transform = `translate3d(0, ${translateY}px, 0) scale(${scale})`;
+    // Autoplay video on scroll start
+    ScrollTrigger.create({
+      trigger: containerRef.current,
+      start: "100px top",
+      onEnter: () => {
+        videoPlayerRef.current?.play().catch(console.error);
       }
+    });
 
-      // Text Reveal Animation
-      if (textRef.current) {
-        // Text reveals as video moves down
-        // Starts revealing immediately, fully visible by 300px
-        const textProgress = Math.min(scrollY / 300, 1);
-
-        textRef.current.style.opacity = textProgress.toString();
-        // Text slides in slightly from TOP
-        // Start at -50px (higher), end at 0 (original position)
-        const textTranslateY = -50 + (textProgress * 50);
-        textRef.current.style.transform = `translate3d(0, ${textTranslateY}px, 0)`;
-      }
-
-      // Autoplay video logic (kept similar but tuned)
-      if (videoPlayerRef.current) {
-        if (scrollY > 50 && videoPlayerRef.current.paused) {
-          videoPlayerRef.current.play().catch(console.error);
-        }
-      }
-    };
-
-    window.addEventListener('scroll', handleScroll);
-
-    return () => {
-      ctx.revert();
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  }, { scope: containerRef });
 
   return (
     <div
+      id="work"
       ref={containerRef}
       className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 bg-transparent pt-60"
     >
@@ -131,13 +119,13 @@ const HeroSection: React.FC = () => {
           </div>
         </div>
 
-        <h1 className="hero-line text-6xl md:text-8xl font-bold text-white mb-8">
-          Narrative Through <span className="italic">Rhythm</span>
+        <h1 className="hero-line text-6xl md:text-8xl font-bold text-white mb-8 font-display tracking-tight">
+          Narrative Through <span className="font-serif italic text-blue-400">Rhythm</span>
         </h1>
 
         {/* Dynamic video editing metrics */}
-        <p className="hero-subtext text-white/70 text-lg text-center mb-8">
-          Transforming raw footage into <span className="text-white">visceral emotional experiences</span> through cinematic storytelling and expert post-production
+        <p className="hero-subtext text-white/70 text-lg text-center mb-8 max-w-xl mx-auto leading-relaxed">
+          Transforming raw footage into <span className="text-white font-medium">visceral emotional experiences</span> through cinematic storytelling and expert post-production
         </p>
 
         {/* Live editing stats */}
@@ -180,11 +168,11 @@ const HeroSection: React.FC = () => {
 
         <div
           ref={textRef}
-          className="absolute top-0 w-full text-center z-0 pt-32 opacity-0 pointer-events-none"
+          className="absolute top-0 w-full text-center z-20 pt-32 opacity-0 pointer-events-none"
         >
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-4xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight leading-[1.1] mb-6 font-display">
-              <span className="block mb-2">Crafting visual stories</span>
+              <span className="block mb-2">Crafting <span className="font-serif italic">visual</span> stories</span>
               <span className="block">that resonate deeply and leave a lasting emotional impact.</span>
             </h2>
           </div>
@@ -231,7 +219,8 @@ const HeroSection: React.FC = () => {
       </div>
 
       {/* Add proper spacing before ShowreelPage */}
-      <div className="h-[50vh]"></div>
+      {/* Increased spacing to accommodate the deep video scroll reveal */}
+      <div className="h-[100vh]"></div>
     </div>
   );
 };

@@ -20,24 +20,24 @@ interface MousePosition {
 
 const InteractiveGridBackground: React.FC = () => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  
-  const mouseRef = useRef<MousePosition>({ 
-    x: 0, y: 0, 
-    targetX: 0, targetY: 0, 
-    isActive: false 
+
+  const mouseRef = useRef<MousePosition>({
+    x: 0, y: 0,
+    targetX: 0, targetY: 0,
+    isActive: false
   });
-  
+
   const gridPointsRef = useRef<GridPoint[][]>([]);
 
   // CONFIGURATION: Continuous Fluid Animation 🌊
   const config = {
     gridSize: 35,           // Larger grid for smoother flow
     strength: 1.0,          // Gentle movement strength
-    
+
     // Physics
     friction: 0.92,         // Smooth gliding
     ease: 0.06,             // Responsive spring
-    
+
     lineColor: 'rgba(22, 155, 82, 0.1)', // Softer green
     lineWidth: 0.8,         // Slightly thicker for visibility
   };
@@ -59,7 +59,7 @@ const InteractiveGridBackground: React.FC = () => {
         // Center the grid and add bleed
         const x = j * config.gridSize - (config.gridSize * 2);
         const y = i * config.gridSize - (config.gridSize * 2);
-        
+
         grid[i][j] = {
           x,
           y,
@@ -73,13 +73,15 @@ const InteractiveGridBackground: React.FC = () => {
     gridPointsRef.current = grid;
   }, [config.gridSize]);
 
-  // Handle mouse movement (disabled for continuous animation)
+  // Handle mouse movement
   const handleMouseMove = useCallback((e: MouseEvent) => {
-    // Mouse interaction disabled - continuous fluid animation only
+    mouseRef.current.targetX = e.clientX;
+    mouseRef.current.targetY = e.clientY;
+    mouseRef.current.isActive = true;
   }, []);
 
   const handleMouseLeave = useCallback(() => {
-    // Mouse interaction disabled
+    mouseRef.current.isActive = false;
   }, []);
 
   const updateAndDraw = useCallback(() => {
@@ -90,40 +92,60 @@ const InteractiveGridBackground: React.FC = () => {
 
     const grid = gridPointsRef.current;
     const { width, height } = canvas;
-    const time = Date.now() * 0.001; // Convert to seconds
+    const time = Date.now() * 0.001;
+
+    // Smoothly interpolate mouse position
+    mouseRef.current.x = lerp(mouseRef.current.x, mouseRef.current.targetX, config.ease * 2);
+    mouseRef.current.y = lerp(mouseRef.current.y, mouseRef.current.targetY, config.ease * 2);
 
     ctx.clearRect(0, 0, width, height);
-    ctx.fillStyle = '#000000'; 
+    ctx.fillStyle = '#000000';
     ctx.fillRect(0, 0, width, height);
 
-    // 2. CONTINUOUS FLUID ANIMATION
+    // 2. CONTINUOUS FLUID ANIMATION + MOUSE RIPPLE
     for (let i = 0; i < grid.length; i++) {
       for (let j = 0; j < grid[i].length; j++) {
         const point = grid[i][j];
 
-        // Continuous fluid motion using multiple sine waves
+        // Fluid motion
         const wave1 = Math.sin(time * 0.3 + i * 0.1) * 15;
         const wave2 = Math.cos(time * 0.2 + j * 0.15) * 12;
         const wave3 = Math.sin(time * 0.4 + (i + j) * 0.05) * 8;
-        
-        // Create flowing motion patterns
+
         const flowX = wave1 + wave3;
         const flowY = wave2 + Math.sin(time * 0.25 + i * 0.08) * 10;
-        
-        // Add subtle rotation effect
+
+        // Mouse Ripple Effect
+        let mouseEffectX = 0;
+        let mouseEffectY = 0;
+
+        if (mouseRef.current.isActive) {
+          const dxMouse = point.originalX - mouseRef.current.x;
+          const dyMouse = point.originalY - mouseRef.current.y;
+          const distMouse = Math.sqrt(dxMouse * dxMouse + dyMouse * dyMouse);
+          const maxDist = 200;
+
+          if (distMouse < maxDist) {
+            const force = (1 - distMouse / maxDist) * 30;
+            const angle = Math.atan2(dyMouse, dxMouse);
+            mouseEffectX = Math.cos(angle) * force;
+            mouseEffectY = Math.sin(angle) * force;
+          }
+        }
+
         const centerX = width / 2;
         const centerY = height / 2;
         const dx = point.originalX - centerX;
         const dy = point.originalY - centerY;
         const rotation = Math.sin(time * 0.1) * 0.02;
-        
+
         const rotatedX = centerX + dx * Math.cos(rotation) - dy * Math.sin(rotation);
         const rotatedY = centerY + dx * Math.sin(rotation) + dy * Math.cos(rotation);
 
-        let targetX = rotatedX + flowX;
-        let targetY = rotatedY + flowY;
+        let targetX = rotatedX + flowX + mouseEffectX;
+        let targetY = rotatedY + flowY + mouseEffectY;
 
-        // Spring Physics for smooth motion
+        // Spring Physics
         const ax = (targetX - point.x) * config.ease;
         const ay = (targetY - point.y) * config.ease;
 
@@ -138,9 +160,9 @@ const InteractiveGridBackground: React.FC = () => {
     // 3. DRAW CURVES
     ctx.strokeStyle = config.lineColor;
     ctx.lineWidth = config.lineWidth;
-    
+
     ctx.beginPath();
-    
+
     // Horizontal
     grid.forEach(row => {
       if (row.length > 0) ctx.moveTo(row[0].x, row[0].y);
@@ -173,7 +195,7 @@ const InteractiveGridBackground: React.FC = () => {
         ctx.lineTo(last.x, last.y);
       }
     }
-    
+
     ctx.stroke();
 
   }, [config]);
@@ -206,8 +228,8 @@ const InteractiveGridBackground: React.FC = () => {
   return (
     <canvas
       ref={canvasRef}
-      className="fixed inset-0 w-full h-full pointer-events-none z-0"
-      style={{ background: '#000000' }}
+      className="fixed inset-0 w-full h-full pointer-events-none z-40 opacity-40 mix-blend-screen"
+      style={{ background: 'transparent' }}
     />
   );
 };
