@@ -9,8 +9,7 @@ import HeroSection from './components/HeroSection';
 import ShowreelPage from './components/ShowreelPage';
 import HorizontalScrollSection from './components/HorizontalScrollSection';
 import StopMotionSection from './components/StopMotionSection';
-// Refresh import
-import ReelsSection from './components/ReelsSection';
+import Footer from './components/Footer';
 import Lenis from 'lenis';
 
 function App() {
@@ -53,7 +52,7 @@ function App() {
       <ShowreelPage />
       <HorizontalScrollSection />
       <StopMotionSection />
-      <ReelsSection />
+      <Footer />
     </div>
   );
 }

@@ -156,6 +156,21 @@
       }
     }
   </style>
+
+  <!-- [BG-ONLY] Scoped styles for the interactive background canvas only -->
+  <style>
+    /* [BG-ONLY] Canvas container — always behind everything */
+    #interactive-bg {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      display: block;
+    }
+  </style>
   <script type="importmap">
 {
   "imports": {
@@ -172,6 +187,8 @@
 </head>
 
 <body class="bg-background-dark text-white font-display overflow-x-hidden selection:bg-primary selection:text-white">
+  <!-- [BG-ONLY] Interactive background canvas — first child, z-index:-1, pointer-events:none -->
+  <canvas id="interactive-bg" aria-hidden="true"></canvas>
   <div class="grain-overlay"></div>
   <!-- Global Vignette -->
   <div
@@ -179,6 +196,184 @@
   </div>
   <div id="root"></div>
   <script type="module" src="/index.tsx"></script>
+
+  <!-- [BG-ONLY] Interactive background script — references #interactive-bg only -->
+  <script>
+      (function () {
+        'use strict';
+        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        const canvas = document.getElementById('interactive-bg');
+        const ctx = canvas.getContext('2d');
+
+        let W, H, rafId = null;
+        // Smoothed mouse position
+        let mx = -9999, my = -9999;
+        let smx = -9999, smy = -9999; // smoothed
+
+        // ── Orbs ──────────────────────────────────────────────────────────────────
+        // Large glowing colour blobs that drift slowly across the canvas
+        const ORB_DEFS = [
+          { cx: 0.20, cy: 0.30, r: 0.42, rgb: '17,82,212', speed: 0.00018, phase: 0.0 },
+          { cx: 0.78, cy: 0.65, r: 0.38, rgb: '111,30,200', speed: 0.00013, phase: 2.1 },
+          { cx: 0.50, cy: 0.90, r: 0.30, rgb: '0,190,140', speed: 0.00021, phase: 4.4 },
+        ];
+
+        // ── Grid config ───────────────────────────────────────────────────────────
+        const GRID_CELL = 60;   // px at current DPR 1
+        const GRID_ALPHA = 0.10; // line opacity
+
+        // ── Resize ────────────────────────────────────────────────────────────────
+        function resize() {
+          const dpr = Math.min(window.devicePixelRatio || 1, 2);
+          W = canvas.width = window.innerWidth * dpr;
+          H = canvas.height = window.innerHeight * dpr;
+          ctx.scale(dpr, dpr);
+          // reset transform accumulation each resize
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          W = window.innerWidth;
+          H = window.innerHeight;
+          canvas.width = W * dpr;
+          canvas.height = H * dpr;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        }
+
+        // ── Draw: solid dark base ─────────────────────────────────────────────────
+        function drawBase() {
+          ctx.fillStyle = '#0a0d14';
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // ── Draw: perspective grid ────────────────────────────────────────────────
+        function drawGrid(ts) {
+          // Animate a slow scroll offset so lines appear to move toward viewer
+          const scrollY = (ts * 0.012) % GRID_CELL;
+          const vx = W / 2;   // vanishing point x
+          const vy = H * 0.48; // vanishing point y (roughly horizon)
+
+          ctx.save();
+          ctx.strokeStyle = `rgba(255,255,255,${GRID_ALPHA})`;
+          ctx.lineWidth = 0.6;
+
+          // Horizontal lines — evenly spaced below the horizon
+          const hLines = 22;
+          for (let i = 0; i <= hLines; i++) {
+            const t = (i + (scrollY / GRID_CELL)) / hLines; // 0 .. 1  (0 = horizon)
+            // Perspective: lines bunch near the horizon, spread at bottom
+            const y = vy + Math.pow(t, 1.7) * (H - vy + GRID_CELL);
+            if (y > H + 2) continue;
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(W, y);
+            ctx.stroke();
+          }
+
+          // Vertical convergence lines
+          const vLines = 18;
+          for (let i = 0; i <= vLines; i++) {
+            const x = (i / vLines) * W;
+            ctx.beginPath();
+            ctx.moveTo(vx, vy);
+            ctx.lineTo(x, H + 2);
+            ctx.stroke();
+          }
+          ctx.restore();
+        }
+
+        // ── Draw: floating colour orbs ────────────────────────────────────────────
+        function drawOrbs(ts) {
+          ORB_DEFS.forEach(o => {
+            // Slow drift using two sine waves per axis
+            const ox = Math.sin(ts * o.speed + o.phase) * W * 0.15;
+            const oy = Math.cos(ts * o.speed * 0.7 + o.phase) * H * 0.12;
+            const cx = o.cx * W + ox;
+            const cy = o.cy * H + oy;
+            const r = o.r * Math.max(W, H);
+
+            const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, r);
+            g.addColorStop(0, `rgba(${o.rgb},0.22)`);
+            g.addColorStop(0.4, `rgba(${o.rgb},0.10)`);
+            g.addColorStop(1, `rgba(${o.rgb},0)`);
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, W, H);
+          });
+        }
+
+        // ── Draw: cursor spotlight ────────────────────────────────────────────────
+        function drawSpotlight() {
+          if (smx < 0) return;
+          const g = ctx.createRadialGradient(smx, smy, 0, smx, smy, 280);
+          g.addColorStop(0, 'rgba(17,82,212,0.18)');
+          g.addColorStop(0.5, 'rgba(17,82,212,0.06)');
+          g.addColorStop(1, 'rgba(0,0,0,0)');
+          ctx.fillStyle = g;
+          ctx.fillRect(0, 0, W, H);
+        }
+
+        // ── Draw: subtle horizontal scanlines overlay ─────────────────────────────
+        function drawScanlines() {
+          ctx.save();
+          ctx.globalAlpha = 0.025;
+          ctx.fillStyle = '#000';
+          for (let y = 0; y < H; y += 3) {
+            ctx.fillRect(0, y, W, 1);
+          }
+          ctx.globalAlpha = 1;
+          ctx.restore();
+        }
+
+        // ── Render loop ───────────────────────────────────────────────────────────
+        function render(ts) {
+          if (document.hidden) { rafId = requestAnimationFrame(render); return; }
+
+          // Lerp mouse toward target (smooth follow)
+          const ease = 0.06;
+          smx += (mx - smx) * ease;
+          smy += (my - smy) * ease;
+
+          drawBase();
+          drawOrbs(ts);
+          drawGrid(ts);
+          drawSpotlight();
+          drawScanlines();
+
+          rafId = requestAnimationFrame(render);
+        }
+
+        function renderStatic() {
+          drawBase();
+          drawOrbs(0);
+          drawGrid(0);
+          drawScanlines();
+        }
+
+        function init() {
+          resize();
+          // Park smooth mouse at centre so spotlight doesn't flash in from corner
+          smx = W / 2; smy = H / 2; mx = W / 2; my = H / 2;
+
+          if (reducedMotion) { renderStatic(); return; }
+          rafId = requestAnimationFrame(render);
+        }
+
+        // ── Event listeners ───────────────────────────────────────────────────────
+        window.addEventListener('mousemove', e => {
+          mx = e.clientX;
+          my = e.clientY;
+        }, { passive: true });
+
+        window.addEventListener('resize', () => {
+          resize();
+          if (reducedMotion) renderStatic();
+        });
+
+        document.addEventListener('visibilitychange', () => {
+          if (!document.hidden && !reducedMotion && !rafId)
+            rafId = requestAnimationFrame(render);
+        });
+
+        init();
+      }());
+  </script>
 </body>
 
 </html>

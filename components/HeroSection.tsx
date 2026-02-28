@@ -104,7 +104,7 @@ const HeroSection: React.FC = () => {
 
           <div className="video-element flex flex-col gap-1">
             <div className="flex gap-1">
-              <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
+              <div className="w-2 h-2 bg-blue-500 rounded-full animate-pulse"></div>
               <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
             </div>
@@ -202,14 +202,13 @@ const HeroSection: React.FC = () => {
 
           <video
             ref={videoPlayerRef}
-            className="w-full h-full object-cover opacity-90"
+            className="w-full h-full object-cover"
             muted
             loop
             playsInline
             poster="/video/poster.jpg" // Added simple placeholder or existing SVG
           >
-            <source src="/video/showreel.mp4" type="video/mp4" />
-            <source src="/video/showreel.webm" type="video/webm" />
+            <source src="/content/hero-video.mp4" type="video/mp4" />
           </video>
 
           {/* Vignette */}
