@@ -90,7 +90,7 @@ const HeroSection: React.FC = () => {
     <div
       id="work"
       ref={containerRef}
-      className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 bg-transparent pt-60"
+      className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 bg-transparent pt-40"
     >
       <div className="text-center mb-12">
         {/* Dynamic video editing elements */}
@@ -119,47 +119,46 @@ const HeroSection: React.FC = () => {
           </div>
         </div>
 
-        <h1 className="hero-line text-6xl md:text-8xl font-bold text-white mb-8 font-display tracking-tight">
-          Narrative Through <span className="font-serif italic text-blue-400">Rhythm</span>
+        <h1 className="hero-line flex flex-col items-center text-center mb-8">
+          <span className="relative text-[5rem] md:text-[7rem] lg:text-[7.5rem] font-black text-[#e8e6e1] leading-[0.85] font-display uppercase tracking-tighter">
+            NARRATIVE THROUGH
+            {/* Small cyan dot detail on the A */}
+          </span>
+          <span className="text-[5.5rem] md:text-[8rem] lg:text-[10rem] font-serif italic leading-[0.8] tracking-tight mt-2 text-transparent" style={{ WebkitTextStroke: '2px #e8e6e1' }}>
+            Rhythm.
+          </span>
         </h1>
 
         {/* Dynamic video editing metrics */}
-        <p className="hero-subtext text-white/70 text-lg text-center mb-8 max-w-xl mx-auto leading-relaxed">
-          Transforming raw footage into <span className="text-white font-medium">visceral emotional experiences</span> through cinematic storytelling and expert post-production
+        <p className="hero-subtext text-white/50 text-xs md:text-sm text-center mb-16 max-w-lg mx-auto leading-relaxed font-sans">
+          Transforming raw footage into visceral emotional experiences through<br />cinematic storytelling and expert post-production.
         </p>
 
         {/* Live editing stats */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-2xl mx-auto">
+        <div className="grid grid-cols-4 gap-4 md:gap-12 max-w-3xl mx-auto w-full mb-16">
           <div className="stat-item text-center">
-            <div className="text-white text-2xl font-bold mb-1">24fps</div>
-            <div className="text-white/40 text-xs">Frame Rate</div>
+            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">24FPS</div>
+            <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Frame Rate</div>
           </div>
           <div className="stat-item text-center">
-            <div className="text-white text-2xl font-bold mb-1">4K</div>
-            <div className="text-white/40 text-xs">Resolution</div>
+            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">4K</div>
+            <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Resolution</div>
           </div>
           <div className="stat-item text-center">
-            <div className="text-white text-2xl font-bold mb-1">60min</div>
-            <div className="text-white/40 text-xs">Avg. Project</div>
+            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">60+</div>
+            <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Projects</div>
           </div>
-          <div className="stat-item text-center">
-            <div className="text-white text-2xl font-bold mb-1">∞</div>
-            <div className="text-white/40 text-xs">Creativity</div>
-          </div>
-        </div>
-
-        {/* Animated timeline element */}
-        <div className="timeline-element mt-8 max-w-md mx-auto">
-          <div className="flex items-center gap-2 text-white/40 text-xs">
-            <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
-            <div className="flex-1 h-0.5 bg-gradient-to-r from-white/60 to-transparent"></div>
-            <span className="font-mono">00:00:00:00</span>
+          <div className="stat-item text-center flex flex-col items-center">
+            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 md:w-10 md:h-10 mx-auto"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z" /></svg>
+            </div>
+            <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Creativity</div>
           </div>
         </div>
       </div>
 
       {/* Main Hero Layout - Stacked for Reveal Effect */}
-      <div className="relative w-full max-w-7xl mx-auto flex flex-col items-center justify-start pt-20">
+      <div className="relative w-full max-w-7xl mx-auto flex flex-col items-center justify-start">
 
         {/* 1. Text Layer - Positioned Absolute/Behind or Top Flow */}
         {/* We place it conceptually "above" the video, but it needs to trigger effectively */}
@@ -168,7 +167,7 @@ const HeroSection: React.FC = () => {
 
         <div
           ref={textRef}
-          className="absolute top-0 w-full text-center z-20 pt-32 opacity-0 pointer-events-none"
+          className="absolute top-0 w-full text-center z-20 pt-2 opacity-0 pointer-events-none"
         >
           <div className="max-w-4xl mx-auto px-4">
             <h2 className="text-4xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight leading-[1.1] mb-6 font-display">

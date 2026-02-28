@@ -1,9 +1,9 @@
-import React, { useRef, useState, useEffect, useMemo } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 
-gsap.registerPlugin(ScrollTrigger, useGSAP);
+gsap.registerPlugin(ScrollTrigger);
 
 const FRAME_COUNT = 240;
 const FRAME_URL = (index: number) =>
@@ -12,30 +12,42 @@ const FRAME_URL = (index: number) =>
 const StopMotionSection: React.FC = () => {
     const containerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const textRef = useRef<HTMLDivElement>(null);
 
     const [framesLoaded, setFramesLoaded] = useState(0);
     const [images, setImages] = useState<HTMLImageElement[]>([]);
 
     // Optimized Preloading
     useEffect(() => {
-        if (images.length === FRAME_COUNT) return;
-
         const loadedImages: HTMLImageElement[] = [];
         let count = 0;
         let isCancelled = false;
 
+        const handleImageLoad = (img: HTMLImageElement) => {
+            if (isCancelled) return;
+            count++;
+            setFramesLoaded(count);
+            if (count === FRAME_COUNT) {
+                setImages(loadedImages);
+                // Force refresh once everything is in place
+                setTimeout(() => ScrollTrigger.refresh(), 100);
+            }
+        };
+
+        const handleImageError = () => {
+            if (isCancelled) return;
+            count++; // Still increment to avoid getting stuck
+            setFramesLoaded(count);
+            if (count === FRAME_COUNT) {
+                setImages(loadedImages);
+                setTimeout(() => ScrollTrigger.refresh(), 100);
+            }
+        };
+
         for (let i = 1; i <= FRAME_COUNT; i++) {
             const img = new Image();
+            img.onload = () => handleImageLoad(img);
+            img.onerror = () => handleImageError();
             img.src = FRAME_URL(i);
-            img.onload = () => {
-                if (isCancelled) return;
-                count++;
-                setFramesLoaded(count);
-                if (count === FRAME_COUNT) {
-                    setImages(loadedImages);
-                }
-            };
             loadedImages.push(img);
         }
 
@@ -43,6 +55,7 @@ const StopMotionSection: React.FC = () => {
     }, []);
 
     const renderFrame = (index: number) => {
+        if (images.length === 0) return;
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
         const img = images[index];
@@ -57,8 +70,8 @@ const StopMotionSection: React.FC = () => {
         }
     };
 
-    useGSAP(() => {
-        if (images.length < FRAME_COUNT) return;
+    useGSAP((context) => {
+        if (images.length === 0) return;
 
         // 1. Initial Frame Render
         renderFrame(0);
@@ -68,25 +81,35 @@ const StopMotionSection: React.FC = () => {
             scrollTrigger: {
                 trigger: containerRef.current,
                 start: "top top",
-                end: "+=1000%", // Doubled scroll distance for 1/2 speed
+                end: "+=1000%", // Doubled scroll distance for slower speed
                 pin: true,
                 scrub: 1, // Smooth catch-up effect
+                anticipatePin: 1, // Fix jumping
+                onRefresh: () => {
+                    if (images.length < FRAME_COUNT) return;
+                    const currentProgress = tl.scrollTrigger?.progress || 0;
+                    const totalFrames = (FRAME_COUNT - 1) * 2;
+                    const frameIdx = Math.round(currentProgress * totalFrames);
+                    const mappedIdx = frameIdx <= (FRAME_COUNT - 1)
+                        ? frameIdx
+                        : (totalFrames - frameIdx);
+                    renderFrame(mappedIdx);
+                }
             }
         });
 
         // 3. Animate Canvas Frames with Yoyo Loop
-        // Sequence: 0 -> 239 -> 0
         const maxFrameIndex = FRAME_COUNT - 1;
-        const totalFrames = maxFrameIndex * 2; // e.g. 0 to 478
+        const totalFrames = maxFrameIndex * 2;
 
         tl.to({ frame: 0 }, {
             frame: totalFrames,
             snap: "frame",
             ease: "none",
-            duration: 5, // Extends frame animation
+            duration: 30, // Extends frame animation (doubled from previous 5 for halved speed)
             onUpdate: function () {
+                if (images.length === 0) return;
                 const currentProgress = Math.round(this.targets()[0].frame);
-                // Map progress to frame index: 0->239 then 239->0
                 const frameIndex = currentProgress <= maxFrameIndex
                     ? currentProgress
                     : (maxFrameIndex * 2) - currentProgress;
@@ -96,25 +119,27 @@ const StopMotionSection: React.FC = () => {
         }, 0);
 
         // 4. Kinetic Text Reveal
-        const words = gsap.utils.toArray<HTMLElement>('.text-word');
-        tl.fromTo(words,
-            {
-                opacity: 0,
-                y: 50,
-                filter: "blur(10px)",
-                scale: 0.8
-            },
-            {
-                opacity: 1,
-                y: 0,
-                filter: "blur(0px)",
-                scale: 1,
-                stagger: 0.1,
-                duration: 1, // Per word fade
-                ease: "power3.out",
-            },
-            0 // Start together with frames
-        );
+        const words = context.selector?.('.text-word') as HTMLElement[];
+        if (words && words.length > 0) {
+            tl.fromTo(words,
+                {
+                    opacity: 0,
+                    y: 50,
+                    filter: "blur(10px)",
+                    scale: 0.8
+                },
+                {
+                    opacity: 1,
+                    y: 0,
+                    filter: "blur(0px)",
+                    scale: 1,
+                    stagger: { amount: 28 }, // Distribute text reveal across 28s
+                    duration: 2, // Each word takes 2s (Total 28 + 2 = 30s)
+                    ease: "power3.out",
+                },
+                0 // Start exactly with canvas frames
+            );
+        }
 
         // 5. Scale down the background slightly as we finish
         tl.to(canvasRef.current, {
@@ -158,7 +183,7 @@ const StopMotionSection: React.FC = () => {
 
             {/* Content Overlay */}
             <div className="absolute inset-0 z-20 flex items-center justify-center md:justify-end md:pr-24 pointer-events-none">
-                <div ref={textRef} className="max-w-2xl mix-blend-difference text-white">
+                <div className="max-w-2xl mix-blend-difference text-white">
                     <h2 className="text-7xl md:text-9xl font-black uppercase leading-[0.8] mb-8 tracking-tighter font-display">
                         ABOUT<br /><span className="text-transparent font-serif italic" style={{ WebkitTextStroke: '1px white' }}>ME.</span>
                     </h2>
@@ -166,7 +191,7 @@ const StopMotionSection: React.FC = () => {
                     <p className="text-xl md:text-2xl font-medium leading-tight flex flex-wrap gap-x-2 overflow-hidden font-display opacity-80">
                         {bioText.split(" ").map((word, i) => (
                             <span key={i} className="text-word inline-block origin-left">
-                                {word}
+                                {word}&nbsp;
                             </span>
                         ))}
                     </p>
