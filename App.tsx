@@ -10,6 +10,7 @@ import ShowreelPage from './components/ShowreelPage';
 import HorizontalScrollSection from './components/HorizontalScrollSection';
 import StopMotionSection from './components/StopMotionSection';
 import Footer from './components/Footer';
+import LoadingScreen from './components/LoadingScreen';
 import Lenis from 'lenis';
 
 function App() {
@@ -46,6 +47,7 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-[#000000]">
+      <LoadingScreen />
       <InteractiveGridBackground />
       <Header />
       <HeroSection />

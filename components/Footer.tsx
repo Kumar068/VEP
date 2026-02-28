@@ -41,13 +41,13 @@ const Footer: React.FC = () => {
         >
             {/* oversized ghost text */}
             <div
-                className="absolute -bottom-6 -left-4 font-black text-[18vw] leading-none text-white/[0.022] select-none pointer-events-none uppercase tracking-tighter"
+                className="absolute -bottom-6 -left-4 font-black text-[30vw] md:text-[18vw] leading-none text-white/[0.022] select-none pointer-events-none uppercase tracking-tighter"
                 aria-hidden="true"
             >
                 CONTACT
             </div>
 
-            <div className="relative px-8 md:px-20 py-20 md:py-24 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-12 items-end">
+            <div className="relative px-6 md:px-20 py-14 md:py-24 grid grid-cols-1 md:grid-cols-[1fr_auto] gap-10 md:gap-12 items-end">
 
                 {/* ── Left: CTA block ─────────────────────────────────────────── */}
                 <div>
@@ -67,17 +67,14 @@ const Footer: React.FC = () => {
                         target="_blank"
                         rel="noopener noreferrer"
                         className="footer-email group inline-block font-serif italic text-[#25D366] hover:text-[#4fe888] transition-colors duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#25D366]"
-                        style={{ fontSize: 'clamp(1.25rem,2.8vw,2.5rem)' }}
+                        style={{ fontSize: 'clamp(1.1rem,2.8vw,2.5rem)' }}
                     >
-                        <span className="inline-flex items-center gap-3">
+                        <span className="inline-flex items-center gap-2 md:gap-3">
                             WhatsApp Me
-                            {/* WhatsApp logo icon */}
                             <img
                                 src="https://cdn-icons-png.flaticon.com/512/733/733585.png"
                                 alt="WhatsApp"
-                                width="28"
-                                height="28"
-                                className="opacity-60 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-200"
+                                className="w-5 h-5 md:w-7 md:h-7 opacity-60 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-200"
                                 aria-hidden="true"
                             />
                         </span>
@@ -92,7 +89,7 @@ const Footer: React.FC = () => {
                 </div>
 
                 {/* ── Right: meta block ────────────────────────────────────────── */}
-                <div className="footer-meta text-right md:text-right text-left">
+                <div className="footer-meta text-left md:text-right">
                     {/* role + location */}
                     <div className="mb-6 space-y-1">
                         <div className="font-mono text-[9px] tracking-[0.2em] text-white/20 uppercase">Video Editor</div>
@@ -119,7 +116,7 @@ const Footer: React.FC = () => {
             </div>
 
             {/* ── Bottom bar ──────────────────────────────────────────────── */}
-            <div className="relative px-8 md:px-20 py-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="relative px-6 md:px-20 py-4 md:py-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-2 md:gap-3">
                 <span className="font-mono text-[8px] tracking-[0.2em] text-white/15 uppercase">
                     © 2026 KEERTHAN — All rights reserved
                 </span>
