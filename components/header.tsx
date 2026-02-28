@@ -113,21 +113,30 @@ const Header: React.FC = () => {
           <div className="w-2.5 h-2.5 bg-white rounded-full group-hover:scale-110 transition-transform" />
         </div>
         <span className="text-white font-bold tracking-widest text-sm uppercase font-display">
-          John Doe <span className="text-white/40 mx-1">/</span> Editor
+          KEERTHAN <span className="text-white/40 mx-1">/</span> Editor
         </span>
       </div>
 
       {/* 2. NAVIGATION */}
       <nav ref={navRef} className="relative z-10 hidden md:flex items-center gap-12">
-        {['Work', 'Showreel', 'Process', 'About'].map((item) => (
+        {([
+          { label: 'Work', id: 'work' },
+          { label: 'Showreel', id: 'showreel' },
+          { label: 'Process', id: 'process' },
+          { label: 'About', id: 'about' },
+        ] as { label: string; id: string }[]).map(({ label, id }) => (
           <a
-            key={item}
-            href={`#${item.toLowerCase()}`}
+            key={id}
+            href={`#${id}`}
+            onClick={(e) => {
+              e.preventDefault();
+              document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+            }}
             className="nav-link text-gray-400 text-xs font-bold uppercase tracking-[0.2em] font-display transition-colors"
             onMouseEnter={handleLinkHover}
             onMouseLeave={handleLinkLeave}
           >
-            {item}
+            {label}
           </a>
         ))}
       </nav>

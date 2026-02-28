@@ -10,6 +10,10 @@ const HeroSection: React.FC = () => {
   const videoRef = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const videoPlayerRef = useRef<HTMLVideoElement>(null);
+  const stat24Ref = useRef<HTMLDivElement>(null);
+  const stat4KRef = useRef<HTMLDivElement>(null);
+  const stat60Ref = useRef<HTMLDivElement>(null);
+  const statIconRef = useRef<SVGSVGElement>(null);
 
   // We use useGSAP to handle GSAP context and animations safely in React
   useGSAP(() => {
@@ -35,7 +39,7 @@ const HeroSection: React.FC = () => {
       // 4. Stats grid scroll animation
       .fromTo(".stat-item",
         { y: 30, opacity: 0 },
-        { y: 0, opacity: 1, duration: 0.6, stagger: 0.05 },
+        { y: 0, opacity: 1, duration: 0.6, stagger: 0.08 },
         "-=0.3"
       )
       // 5. Timeline scroll animation
@@ -50,6 +54,69 @@ const HeroSection: React.FC = () => {
         { scale: 1, opacity: 1, duration: 1.0 },
         "-=0.5"
       );
+
+    // --- Stat counter animations (trigger after entry) ---
+    const counterTl = gsap.timeline({ delay: 1.2 });
+
+    // 24FPS: count 0 → 24
+    const obj24 = { val: 0 };
+    counterTl.to(obj24, {
+      val: 60,
+      duration: 1.4,
+      ease: "power2.out",
+      onUpdate: () => {
+        if (stat24Ref.current)
+          stat24Ref.current.textContent = `${Math.round(obj24.val)}FPS`;
+      },
+    }, 0);
+
+    // 4K: pop in with a scale bounce
+    if (stat4KRef.current) {
+      counterTl.fromTo(
+        stat4KRef.current,
+        { scale: 0.5, opacity: 0 },
+        { scale: 1, opacity: 1, duration: 0.7, ease: "back.out(1.7)" },
+        0.3
+      );
+    }
+
+    // 60+: count 0 → 60
+    const obj60 = { val: 0 };
+    counterTl.to(obj60, {
+      val: 60,
+      duration: 1.4,
+      ease: "power2.out",
+      onUpdate: () => {
+        if (stat60Ref.current)
+          stat60Ref.current.textContent = `${Math.round(obj60.val)}+`;
+      },
+    }, 0);
+
+    // Creativity icon: continuous slow spin
+    if (statIconRef.current) {
+      gsap.to(statIconRef.current, {
+        rotation: 360,
+        duration: 6,
+        ease: "none",
+        repeat: -1,
+        transformOrigin: "50% 50%",
+      });
+    }
+
+    // Shimmer sweep across each stat value after load
+    gsap.fromTo(
+      ".stat-value",
+      { backgroundPositionX: "-200%" },
+      {
+        backgroundPositionX: "200%",
+        duration: 1.5,
+        stagger: 0.15,
+        delay: 1.6,
+        ease: "power1.inOut",
+        repeat: -1,
+        repeatDelay: 5,
+      }
+    );
 
     gsap.to(videoRef.current, {
       scrollTrigger: {
@@ -136,21 +203,77 @@ const HeroSection: React.FC = () => {
 
         {/* Live editing stats */}
         <div className="grid grid-cols-4 gap-4 md:gap-12 max-w-3xl mx-auto w-full mb-16">
-          <div className="stat-item text-center">
-            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">24FPS</div>
+          <div
+            className="stat-item text-center cursor-default"
+            onMouseEnter={e => gsap.to(e.currentTarget, { y: -4, scale: 1.08, duration: 0.3, ease: 'back.out(2)' })}
+            onMouseLeave={e => gsap.to(e.currentTarget, { y: 0, scale: 1, duration: 0.4, ease: 'power3.out' })}
+          >
+            <div
+              ref={stat24Ref}
+              className="stat-value text-[#e8e6e1] text-xl md:text-2xl font-black mb-3 font-display"
+              style={{
+                background: 'linear-gradient(90deg, #e8e6e1 40%, #ffffff 50%, #e8e6e1 60%)',
+                backgroundSize: '300% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >0FPS</div>
             <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Frame Rate</div>
           </div>
-          <div className="stat-item text-center">
-            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">4K</div>
+
+          <div
+            className="stat-item text-center cursor-default"
+            onMouseEnter={e => gsap.to(e.currentTarget, { y: -4, scale: 1.08, duration: 0.3, ease: 'back.out(2)' })}
+            onMouseLeave={e => gsap.to(e.currentTarget, { y: 0, scale: 1, duration: 0.4, ease: 'power3.out' })}
+          >
+            <div
+              ref={stat4KRef}
+              className="stat-value text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display"
+              style={{
+                background: 'linear-gradient(90deg, #e8e6e1 40%, #ffffff 50%, #e8e6e1 60%)',
+                backgroundSize: '300% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+                opacity: 0,
+              }}
+            >4K</div>
             <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Resolution</div>
           </div>
-          <div className="stat-item text-center">
-            <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">60+</div>
+
+          <div
+            className="stat-item text-center cursor-default"
+            onMouseEnter={e => gsap.to(e.currentTarget, { y: -4, scale: 1.08, duration: 0.3, ease: 'back.out(2)' })}
+            onMouseLeave={e => gsap.to(e.currentTarget, { y: 0, scale: 1, duration: 0.4, ease: 'power3.out' })}
+          >
+            <div
+              ref={stat60Ref}
+              className="stat-value text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display"
+              style={{
+                background: 'linear-gradient(90deg, #e8e6e1 40%, #ffffff 50%, #e8e6e1 60%)',
+                backgroundSize: '300% 100%',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                backgroundClip: 'text',
+              }}
+            >0+</div>
             <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Projects</div>
           </div>
-          <div className="stat-item text-center flex flex-col items-center">
+
+          <div
+            className="stat-item text-center flex flex-col items-center cursor-default"
+            onMouseEnter={e => gsap.to(e.currentTarget, { y: -4, scale: 1.08, duration: 0.3, ease: 'back.out(2)' })}
+            onMouseLeave={e => gsap.to(e.currentTarget, { y: 0, scale: 1, duration: 0.4, ease: 'power3.out' })}
+          >
             <div className="text-[#e8e6e1] text-2xl md:text-4xl font-black mb-3 font-display">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="w-8 h-8 md:w-10 md:h-10 mx-auto"><path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z" /></svg>
+              <svg
+                ref={statIconRef}
+                viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+                className="w-8 h-8 md:w-10 md:h-10 mx-auto"
+              >
+                <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z" />
+              </svg>
             </div>
             <div className="text-white/40 text-[9px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Creativity</div>
           </div>

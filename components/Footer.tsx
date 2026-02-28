@@ -51,14 +51,6 @@ const Footer: React.FC = () => {
 
                 {/* ── Left: CTA block ─────────────────────────────────────────── */}
                 <div>
-                    {/* section label */}
-                    <div className="flex items-center gap-4 mb-10">
-                        <span className="font-mono text-[10px] tracking-[0.35em] uppercase text-white/25">— 05</span>
-                        <div className="h-px flex-1 bg-white/[0.07]" />
-                        <span className="font-mono text-[10px] tracking-[0.25em] uppercase text-blue-500">Get in Touch</span>
-                    </div>
-
-                    {/* heading */}
                     <h2
                         className="footer-heading font-black leading-[0.88] uppercase tracking-tight mb-8"
                         style={{ fontSize: 'clamp(2.6rem,6.5vw,6rem)' }}
@@ -70,26 +62,27 @@ const Footer: React.FC = () => {
                         </span>
                     </h2>
 
-                    {/* email */}
                     <a
-                        href="mailto:hello@johndoe.film"
-                        className="footer-email group inline-block font-serif italic text-blue-400 hover:text-blue-300 transition-colors duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
+                        href="https://wa.me/919876543210"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="footer-email group inline-block font-serif italic text-[#25D366] hover:text-[#4fe888] transition-colors duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#25D366]"
                         style={{ fontSize: 'clamp(1.25rem,2.8vw,2.5rem)' }}
                     >
                         <span className="inline-flex items-center gap-3">
-                            hello@johndoe.film
-                            <svg
-                                className="opacity-0 group-hover:opacity-100 translate-x-0 group-hover:translate-x-1 transition-all duration-200"
-                                width="18" height="14" viewBox="0 0 18 14" fill="none" stroke="currentColor" strokeWidth="1.5"
+                            WhatsApp Me
+                            {/* WhatsApp logo icon */}
+                            <img
+                                src="https://cdn-icons-png.flaticon.com/512/733/733585.png"
+                                alt="WhatsApp"
+                                width="28"
+                                height="28"
+                                className="opacity-60 group-hover:opacity-100 scale-90 group-hover:scale-100 transition-all duration-200"
                                 aria-hidden="true"
-                            >
-                                <line x1="0" y1="7" x2="15" y2="7" />
-                                <polyline points="9,1 15,7 9,13" />
-                            </svg>
+                            />
                         </span>
                     </a>
 
-                    {/* social / availability pill */}
                     <div className="mt-10 flex items-center gap-4">
                         <span className="inline-flex items-center gap-2 border border-white/[0.12] rounded-full px-4 py-2">
                             <span className="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
@@ -128,7 +121,7 @@ const Footer: React.FC = () => {
             {/* ── Bottom bar ──────────────────────────────────────────────── */}
             <div className="relative px-8 md:px-20 py-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                 <span className="font-mono text-[8px] tracking-[0.2em] text-white/15 uppercase">
-                    © 2026 John Doe — All rights reserved
+                    © 2026 KEERTHAN — All rights reserved
                 </span>
                 <span className="font-mono text-[8px] tracking-[0.15em] text-white/[0.08] uppercase">
                     VEP v2.0

@@ -163,7 +163,7 @@ const StopMotionSection: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, { dependencies: [images], scope: containerRef });
 
-    const bioText = "I am a creative developer passionate about building immersive digital experiences. With a keen eye for design and a strong technical background, I bridge the gap between visual aesthetics and functional performance.";
+    const bioText = "I’m Keerthan, a Senior Video Editor currently working at a digital marketing agency, specializing in high-retention content. With experience across 30+ industries and a 1st place win in Karnataka’s competitive editing challenge.";
 
     return (
         <div id="about" ref={containerRef} className="relative w-full h-screen bg-[#0a0a0a] overflow-hidden font-sans">
@@ -198,10 +198,6 @@ const StopMotionSection: React.FC = () => {
                 </div>
             </div>
 
-            {/* Floating Footer Element */}
-            <div className="absolute bottom-10 left-10 z-30 mix-blend-difference text-white opacity-40 uppercase text-xs tracking-[0.5em]">
-                Scroll to explore sequence
-            </div>
 
         </div>
     );
