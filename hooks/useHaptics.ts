@@ -1,4 +1,3 @@
-import { useWebHaptics } from "web-haptics/react";
 import { useCallback, useEffect, useRef } from "react";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -112,9 +111,19 @@ const IOS_PRESET_DURATION: Record<string, number> = {
 // Exported hook
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Preset → duration mapping for Android/Desktop (navigator.vibrate)
+// ─────────────────────────────────────────────────────────────────────────────
+const ANDROID_PRESET_PATTERN: Record<string, number | number[]> = {
+    success: [10, 30, 20], // short double buzz for success
+    nudge: 15,             // single light tap
+    error: [30, 40, 30],   // heavier double buzz
+    buzz: 80,              // longer single buzz
+};
+
 /**
  * Centralised haptics wrapper.
- * - Android / desktop: uses web-haptics (Vibration API + debug audio in dev).
+ * - Android / desktop: uses native navigator.vibrate() API.
  * - iOS: uses the switch-checkbox Taptic Engine trick (iOS 18+) combined
  *   with a short AudioContext buzz as an additional fallback.
  */
@@ -129,14 +138,28 @@ export function useHaptics() {
         };
     }, []);
 
-    const { trigger: webTrigger, cancel } = useWebHaptics({
-        debug: false, // audio cues stay wired but muted
-    });
+    const triggerAndroidHaptic = useCallback((input?: any) => {
+        if (typeof navigator !== 'undefined' && navigator.vibrate) {
+            let pattern: number | number[] = 20; // default conservative tap
+
+            if (typeof input === 'string' && ANDROID_PRESET_PATTERN[input]) {
+                pattern = ANDROID_PRESET_PATTERN[input];
+            } else if (typeof input === 'number' || Array.isArray(input)) {
+                pattern = input;
+            }
+
+            try {
+                navigator.vibrate(pattern);
+            } catch (e) {
+                // Ignore DOMExceptions if user hasn't interacted with page yet
+            }
+        }
+    }, []);
 
     const trigger = useCallback(
-        (input?: any, options?: any) => {
+        (input?: any) => {
             if (onIOS.current) {
-                // Resolve duration from preset name or raw number
+                // Resolve iOS duration
                 let duration: number | undefined;
                 if (typeof input === "string") {
                     duration = IOS_PRESET_DURATION[input];
@@ -145,11 +168,18 @@ export function useHaptics() {
                 }
                 triggerIOSHaptic(duration);
             } else {
-                webTrigger(input, options);
+                // Trigger Android vibration
+                triggerAndroidHaptic(input);
             }
         },
-        [webTrigger]
+        [triggerAndroidHaptic]
     );
+
+    const cancel = useCallback(() => {
+        if (!onIOS.current && typeof navigator !== 'undefined' && navigator.vibrate) {
+            navigator.vibrate(0);
+        }
+    }, []);
 
     return { trigger, cancel };
 }
