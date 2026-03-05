@@ -94,10 +94,17 @@ const StopMotionSection: React.FC = () => {
 
     // ── Render a single frame to canvas ─────────────────────────────────
     const renderFrame = (index: number) => {
-        if (images.length === 0) return;
+        if (framesLoaded === 0) return;
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
-        const img = images[index];
+
+        // If the user scrolls faster than we lazy-load, fallback to the highest available frame
+        let img = images[index];
+        let fallbackIndex = index;
+        while (!img && fallbackIndex > 1) {
+            fallbackIndex--;
+            img = images[fallbackIndex];
+        }
 
         if (canvas && ctx && img) {
             const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
@@ -111,7 +118,8 @@ const StopMotionSection: React.FC = () => {
 
     // ── GSAP animations — DESKTOP ONLY ──────────────────────────────────
     useGSAP(() => {
-        if (images.length === 0) return;
+        // Only start setting up canvas once we have at least the first frame
+        if (framesLoaded === 0) return;
 
         // Always render first frame + handle resize
         renderFrame(0);
@@ -140,7 +148,7 @@ const StopMotionSection: React.FC = () => {
                 scrub: 1,
                 anticipatePin: 1,
                 onRefresh: () => {
-                    if (images.length < FRAME_COUNT) return;
+                    if (framesLoaded < 2) return; // Don't scrub on a single frame
                     const currentProgress = tl.scrollTrigger?.progress || 0;
                     const totalFrames = (FRAME_COUNT - 1) * 2;
                     const frameIdx = Math.round(currentProgress * totalFrames);
@@ -161,7 +169,7 @@ const StopMotionSection: React.FC = () => {
             ease: "none",
             duration: 30,
             onUpdate: function () {
-                if (images.length === 0) return;
+                if (framesLoaded === 0) return;
                 const currentProgress = Math.round(this.targets()[0].frame);
                 const frameIndex = currentProgress <= maxFrameIndex
                     ? currentProgress
