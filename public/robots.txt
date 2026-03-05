@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Sitemaps (if you add one later, uncomment)
+# Sitemap: https://vep-up.railway.app/sitemap.xml
