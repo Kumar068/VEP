@@ -30,14 +30,18 @@ const LoadingScreen: React.FC = () => {
             });
         };
 
+        const maxWait = setTimeout(hide, 1200); // Failsafe unblock after 1.2s
+
         if (document.readyState === 'complete') {
-            // Already loaded (HMR re-mounts etc.)
             hide();
         } else {
             window.addEventListener('load', hide, { once: true });
         }
 
-        return () => window.removeEventListener('load', hide);
+        return () => {
+            clearTimeout(maxWait);
+            window.removeEventListener('load', hide);
+        };
     }, []);
 
     if (!visible) return null;
@@ -51,13 +55,16 @@ const LoadingScreen: React.FC = () => {
         >
             {/* ── GIF / Logo ────────────────────────────────────────────────── */}
             <div className="relative flex flex-col items-center gap-6 select-none">
-                <img
-                    src="/content/loader.gif"
-                    alt="Loading…"
-                    className="w-32 h-32 object-contain"
+                <video
+                    autoPlay
+                    loop
+                    muted
+                    playsInline
+                    src="/content/loader.webm"
+                    className="w-32 h-32 object-contain" // Changed from w-full h-full object-cover rounded-full to match original size
                     onError={(e) => {
                         // Fallback: animated letter mark if no GIF present yet
-                        (e.currentTarget as HTMLImageElement).style.display = 'none';
+                        (e.currentTarget as HTMLVideoElement).style.display = 'none';
                     }}
                 />
 

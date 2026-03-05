@@ -35,7 +35,7 @@ const ShowreelPage: React.FC = () => {
   }, { scope: sectionRef });
 
   return (
-    <div id="showreel" ref={sectionRef} className="relative w-full flex items-center justify-center bg-transparent" style={{ minHeight: '200px' }}>
+    <div ref={sectionRef} className="relative w-full flex items-center justify-center bg-transparent" style={{ minHeight: '200px' }}>
       {/* Background Moving Text */}
       <div className="absolute inset-0 flex items-center justify-center opacity-5 text-gray-600 text-4xl sm:text-6xl md:text-9xl font-extrabold whitespace-nowrap -translate-y-24 sm:-translate-y-36 md:-translate-y-48">
         <div className="animate-marquee-slow">

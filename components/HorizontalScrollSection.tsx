@@ -631,7 +631,7 @@ const GlimpseSection: React.FC = () => {
   return (
     <div
       ref={sectionRef}
-      id="glimpse"
+      id="work"
       className="relative px-4 sm:px-8 md:px-20 pt-20 sm:pt-24 pb-8 sm:pb-10 md:pt-36 md:pb-12 overflow-hidden"
       aria-label="A glimpse — achievements"
       style={{ perspective: '1200px' }}
@@ -672,7 +672,7 @@ const GlimpseSection: React.FC = () => {
             style={{ background: 'linear-gradient(135deg, #0a0a14 0%, #1152d4 40%, #00c896 100%)' }}
           >
             <img
-              src="/content/glimpse-image.png"
+              src="/content/glimpse-image.webp"
               alt="Keerthan at work"
               className="w-full h-full object-cover"
               onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
@@ -837,7 +837,7 @@ const HorizontalScrollSection: React.FC = () => {
   }, { scope: rootRef });
 
   return (
-    <div ref={rootRef} id="process" className="relative z-10 text-white overflow-x-hidden">
+    <div ref={rootRef} className="relative z-10 text-white overflow-x-hidden">
 
       {/* ── Glimpse ── */}
       <GlimpseSection />
@@ -847,8 +847,6 @@ const HorizontalScrollSection: React.FC = () => {
 
       <div
         className="relative px-4 sm:px-8 md:px-20 pt-8 sm:pt-10 pb-20 sm:pb-24 md:pt-14 md:pb-32"
-        id="showreel"
-        aria-label="Sound shapes story"
       >
         {/* top section label */}
 
@@ -913,8 +911,9 @@ const HorizontalScrollSection: React.FC = () => {
       </div>
       <div
         className="pt-20 pb-28"
-        id="work"
+        id="showreel"
         aria-label="Latest clips — 07 projects"
+        style={{ scrollMarginTop: '80px' }}
       >
         {/* header */}
         <div className="clips-header px-4 sm:px-8 md:px-20 mb-10 sm:mb-14">
@@ -965,9 +964,9 @@ const HorizontalScrollSection: React.FC = () => {
 
       <div
         className="px-4 sm:px-8 md:px-20 py-16 sm:py-24 md:py-32"
-        style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.014) 0%, transparent 100%)' }}
-        id="process-steps"
+        id="process"
         aria-label="The Process — 4 steps"
+        style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.014) 0%, transparent 100%)', scrollMarginTop: '80px' }}
       >
 
         <div className="mt-10 mb-16">

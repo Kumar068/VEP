@@ -29,40 +29,65 @@ const StopMotionSection: React.FC = () => {
         return () => mq.removeEventListener('change', handler);
     }, []);
 
-    // ── Preload frames ──────────────────────────────────────────────────
+    // ── Preload frames (Lazy Loading) ───────────────────────────────────
     useEffect(() => {
-        // On mobile, only load 1 frame for the static background
-        const framesToLoad = isMobile ? 1 : FRAME_COUNT;
-        const loadedImages: HTMLImageElement[] = [];
-        let count = 0;
         let isCancelled = false;
+        const loadedImages: HTMLImageElement[] = new Array(FRAME_COUNT + 1);
 
-        const onDone = () => {
-            setImages(loadedImages);
-            setTimeout(() => ScrollTrigger.refresh(), 100);
+        // Load a single frame instantly to show the static background
+        const loadSingleFrame = (index: number): Promise<HTMLImageElement> => {
+            return new Promise((resolve) => {
+                const img = new Image();
+                img.src = FRAME_URL(index);
+                img.onload = () => {
+                    loadedImages[index] = img;
+                    resolve(img);
+                };
+                img.onerror = () => resolve(img); // resolve anyway to not break Promise.all
+            });
         };
 
-        const handleLoad = (img: HTMLImageElement) => {
+        // 1. Instantly load the first frame so it's ready for initial render
+        loadSingleFrame(1).then(() => {
             if (isCancelled) return;
-            count++;
-            setFramesLoaded(count);
-            if (count === framesToLoad) onDone();
-        };
+            setFramesLoaded(1);
+            setImages([...loadedImages]); // trigger initial render with 1 frame
 
-        const handleError = () => {
-            if (isCancelled) return;
-            count++;
-            setFramesLoaded(count);
-            if (count === framesToLoad) onDone();
-        };
+            // If on mobile, we STOP here to save resources (mobile just uses static frame 1)
+            if (isMobile) return;
 
-        for (let i = 1; i <= framesToLoad; i++) {
-            const img = new Image();
-            img.onload = () => handleLoad(img);
-            img.onerror = () => handleError();
-            img.src = FRAME_URL(i);
-            loadedImages.push(img);
-        }
+            // 2. Defer the heavy loading of the remaining 239 frames until the browser is idle
+            const loadRemainingFrames = () => {
+                let count = 1;
+                for (let i = 2; i <= FRAME_COUNT; i++) {
+                    if (isCancelled) break;
+                    const img = new Image();
+                    img.src = FRAME_URL(i);
+                    img.onload = () => {
+                        if (isCancelled) return;
+                        loadedImages[i] = img;
+                        count++;
+                        setFramesLoaded(count);
+                        if (count === FRAME_COUNT) {
+                            setImages([...loadedImages]);
+                            setTimeout(() => ScrollTrigger.refresh(), 100);
+                        }
+                    };
+                    img.onerror = () => {
+                        if (isCancelled) return;
+                        count++;
+                        setFramesLoaded(count);
+                    };
+                }
+            };
+
+            // Non-blocking idle callback
+            if ('requestIdleCallback' in window) {
+                window.requestIdleCallback(loadRemainingFrames);
+            } else {
+                setTimeout(loadRemainingFrames, 1000); // Fallback delay
+            }
+        });
 
         return () => { isCancelled = true; };
     }, [isMobile]);
@@ -177,7 +202,7 @@ const StopMotionSection: React.FC = () => {
     const loadTarget = isMobile ? 1 : FRAME_COUNT;
 
     return (
-        <div id="about" ref={containerRef} className="relative w-full min-h-screen md:h-screen bg-[#0a0a0a] overflow-hidden font-sans">
+        <div id="about" ref={containerRef} className="relative w-full min-h-screen md:h-screen bg-[#0a0a0a] overflow-hidden font-sans" style={{ scrollMarginTop: '80px' }}>
             {/* Progress Loader */}
             {framesLoaded < loadTarget && (
                 <div className="absolute inset-0 flex items-center justify-center z-50 bg-black">

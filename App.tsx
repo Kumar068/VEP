@@ -6,12 +6,14 @@ gsap.registerPlugin(ScrollTrigger);
 import InteractiveGridBackground from './components/InteractiveGridBackground';
 import Header from './components/header';
 import HeroSection from './components/HeroSection';
-import ShowreelPage from './components/ShowreelPage';
-import HorizontalScrollSection from './components/HorizontalScrollSection';
-import StopMotionSection from './components/StopMotionSection';
-import Footer from './components/Footer';
 import LoadingScreen from './components/LoadingScreen';
 import Lenis from 'lenis';
+
+// Lazy load below-the-fold components to slash main-thread TBT (Total Blocking Time)
+const ShowreelPage = React.lazy(() => import('./components/ShowreelPage'));
+const HorizontalScrollSection = React.lazy(() => import('./components/HorizontalScrollSection'));
+const StopMotionSection = React.lazy(() => import('./components/StopMotionSection'));
+const Footer = React.lazy(() => import('./components/Footer'));
 
 function App() {
   useLayoutEffect(() => {
@@ -51,10 +53,14 @@ function App() {
       <InteractiveGridBackground />
       <Header />
       <HeroSection />
-      <ShowreelPage />
-      <HorizontalScrollSection />
-      <StopMotionSection />
-      <Footer />
+
+      {/* Defer loading/executing heavy GSAP components until Hero is painted */}
+      <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
+        <ShowreelPage />
+        <HorizontalScrollSection />
+        <StopMotionSection />
+        <Footer />
+      </React.Suspense>
     </div>
   );
 }

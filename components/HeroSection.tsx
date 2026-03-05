@@ -166,7 +166,6 @@ const HeroSection: React.FC = () => {
 
   return (
     <div
-      id="work"
       ref={containerRef}
       className="relative z-10 min-h-screen flex flex-col justify-center items-center px-3 sm:px-4 bg-transparent pt-24 sm:pt-28 md:pt-40 overflow-hidden"
     >
@@ -352,13 +351,14 @@ const HeroSection: React.FC = () => {
 
           <video
             ref={videoPlayerRef}
-            className="w-full h-full object-cover"
-            muted
+            className="hero-video w-full h-full object-cover scale-110 opacity-60"
             loop
+            muted
             playsInline
-            poster="/video/poster.jpg" // Added simple placeholder or existing SVG
+            controls={false}
+            preload="metadata"
           >
-            <source src="/content/hero-video.webm" type="video/webm" />
+            <source src="/content/hero-video-compressed.webm" type="video/webm" />
           </video>
 
           {/* Vignette */}
