@@ -29,82 +29,50 @@ const StopMotionSection: React.FC = () => {
         return () => mq.removeEventListener('change', handler);
     }, []);
 
-    // ── Preload frames (Lazy Loading) ───────────────────────────────────
+    // ── Preload frames ──────────────────────────────────────────────────
     useEffect(() => {
+        // On mobile, only load 1 frame for the static background
+        const framesToLoad = isMobile ? 1 : FRAME_COUNT;
+        const loadedImages: HTMLImageElement[] = [];
+        let count = 0;
         let isCancelled = false;
-        const loadedImages: HTMLImageElement[] = new Array(FRAME_COUNT + 1);
 
-        // Load a single frame instantly to show the static background
-        const loadSingleFrame = (index: number): Promise<HTMLImageElement> => {
-            return new Promise((resolve) => {
-                const img = new Image();
-                img.src = FRAME_URL(index);
-                img.onload = () => {
-                    loadedImages[index] = img;
-                    resolve(img);
-                };
-                img.onerror = () => resolve(img); // resolve anyway to not break Promise.all
-            });
+        const onDone = () => {
+            setImages(loadedImages);
+            setTimeout(() => ScrollTrigger.refresh(), 100);
         };
 
-        // 1. Instantly load the first frame so it's ready for initial render
-        loadSingleFrame(1).then(() => {
+        const handleLoad = (img: HTMLImageElement) => {
             if (isCancelled) return;
-            setFramesLoaded(1);
-            setImages([...loadedImages]); // trigger initial render with 1 frame
+            count++;
+            setFramesLoaded(count);
+            if (count === framesToLoad) onDone();
+        };
 
-            // If on mobile, we STOP here to save resources (mobile just uses static frame 1)
-            if (isMobile) return;
+        const handleError = () => {
+            if (isCancelled) return;
+            count++;
+            setFramesLoaded(count);
+            if (count === framesToLoad) onDone();
+        };
 
-            // 2. Defer the heavy loading of the remaining 239 frames until the browser is idle
-            const loadRemainingFrames = () => {
-                let count = 1;
-                for (let i = 2; i <= FRAME_COUNT; i++) {
-                    if (isCancelled) break;
-                    const img = new Image();
-                    img.src = FRAME_URL(i);
-                    img.onload = () => {
-                        if (isCancelled) return;
-                        loadedImages[i] = img;
-                        count++;
-                        setFramesLoaded(count);
-                        if (count === FRAME_COUNT) {
-                            setImages([...loadedImages]);
-                            setTimeout(() => ScrollTrigger.refresh(), 100);
-                        }
-                    };
-                    img.onerror = () => {
-                        if (isCancelled) return;
-                        count++;
-                        setFramesLoaded(count);
-                    };
-                }
-            };
-
-            // Non-blocking idle callback
-            if ('requestIdleCallback' in window) {
-                window.requestIdleCallback(loadRemainingFrames);
-            } else {
-                setTimeout(loadRemainingFrames, 1000); // Fallback delay
-            }
-        });
+        for (let i = 1; i <= framesToLoad; i++) {
+            const img = new Image();
+            img.onload = () => handleLoad(img);
+            img.onerror = handleError;
+            img.src = FRAME_URL(i);
+            loadedImages.push(img);
+        }
 
         return () => { isCancelled = true; };
     }, [isMobile]);
 
     // ── Render a single frame to canvas ─────────────────────────────────
     const renderFrame = (index: number) => {
-        if (framesLoaded === 0) return;
+        if (images.length === 0) return;
         const canvas = canvasRef.current;
         const ctx = canvas?.getContext('2d');
-
-        // If the user scrolls faster than we lazy-load, fallback to the highest available frame
-        let img = images[index];
-        let fallbackIndex = index;
-        while (!img && fallbackIndex > 1) {
-            fallbackIndex--;
-            img = images[fallbackIndex];
-        }
+        const img = images[index];
 
         if (canvas && ctx && img) {
             const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
@@ -118,8 +86,7 @@ const StopMotionSection: React.FC = () => {
 
     // ── GSAP animations — DESKTOP ONLY ──────────────────────────────────
     useGSAP(() => {
-        // Only start setting up canvas once we have at least the first frame
-        if (framesLoaded === 0) return;
+        if (images.length === 0) return;
 
         // Always render first frame + handle resize
         renderFrame(0);
@@ -148,7 +115,7 @@ const StopMotionSection: React.FC = () => {
                 scrub: 1,
                 anticipatePin: 1,
                 onRefresh: () => {
-                    if (framesLoaded < 2) return; // Don't scrub on a single frame
+                    if (images.length < FRAME_COUNT) return;
                     const currentProgress = tl.scrollTrigger?.progress || 0;
                     const totalFrames = (FRAME_COUNT - 1) * 2;
                     const frameIdx = Math.round(currentProgress * totalFrames);
@@ -169,7 +136,7 @@ const StopMotionSection: React.FC = () => {
             ease: "none",
             duration: 30,
             onUpdate: function () {
-                if (framesLoaded === 0) return;
+                if (images.length === 0) return;
                 const currentProgress = Math.round(this.targets()[0].frame);
                 const frameIndex = currentProgress <= maxFrameIndex
                     ? currentProgress
