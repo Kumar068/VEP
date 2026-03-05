@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useHaptics } from '../hooks/useHaptics';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -16,6 +17,8 @@ const StopMotionSection: React.FC = () => {
     const [framesLoaded, setFramesLoaded] = useState(0);
     const [images, setImages] = useState<HTMLImageElement[]>([]);
     const [isMobile, setIsMobile] = useState(false);
+    const { trigger } = useHaptics();
+    const lastHapticFrame = useRef(0);
 
     // ── Detect mobile (<768px) ──────────────────────────────────────────
     useEffect(() => {
@@ -139,6 +142,12 @@ const StopMotionSection: React.FC = () => {
                     ? currentProgress
                     : (maxFrameIndex * 2) - currentProgress;
 
+                // Haptic pulse every ~10 frames for tactile filmstrip feel
+                if (Math.abs(frameIndex - lastHapticFrame.current) >= 10) {
+                    lastHapticFrame.current = frameIndex;
+                    trigger(20);
+                }
+
                 renderFrame(frameIndex);
             }
         }, 0);
@@ -184,13 +193,13 @@ const StopMotionSection: React.FC = () => {
             />
 
             {/* Content Overlay */}
-            <div className="absolute inset-0 z-20 flex items-center justify-center px-6 md:justify-end md:pr-24 pointer-events-none">
-                <div className="max-w-sm md:max-w-2xl mix-blend-difference text-white text-center md:text-left">
-                    <h2 className="text-5xl md:text-9xl font-black uppercase leading-[0.85] mb-6 md:mb-8 tracking-tighter font-display">
+            <div className="absolute inset-0 z-20 flex items-center justify-center px-4 sm:px-6 md:justify-end md:pr-24 pointer-events-none">
+                <div className="max-w-xs sm:max-w-sm md:max-w-2xl mix-blend-difference text-white text-center md:text-left">
+                    <h2 className="text-3xl sm:text-5xl md:text-9xl font-black uppercase leading-[0.85] mb-4 sm:mb-6 md:mb-8 tracking-tighter font-display">
                         ABOUT<br /><span className="text-transparent font-serif italic" style={{ WebkitTextStroke: '1px white' }}>ME.</span>
                     </h2>
 
-                    <p className="text-base md:text-2xl font-medium leading-snug md:leading-tight flex flex-wrap justify-center md:justify-start gap-x-2 overflow-hidden font-display opacity-80">
+                    <p className="text-sm sm:text-base md:text-2xl font-medium leading-relaxed sm:leading-snug md:leading-tight flex flex-wrap justify-center md:justify-start gap-x-1.5 sm:gap-x-2 overflow-hidden font-display opacity-80">
                         {bioText.split(" ").map((word, i) => (
                             <span
                                 key={i}

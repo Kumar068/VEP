@@ -2,6 +2,7 @@ import React, { useRef, useEffect, useCallback, useState } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useHaptics } from '../hooks/useHaptics';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 const CLIPS = [
@@ -197,8 +198,8 @@ const ClipCard: React.FC<typeof CLIPS[number] & { index: number }> = ({
       ref={cardRef}
       className="group relative flex-shrink-0 overflow-hidden cursor-pointer"
       style={{
-        width: '300px',
-        height: '440px',
+        width: 'clamp(240px, 70vw, 300px)',
+        height: 'clamp(340px, 85vw, 440px)',
         background: bg,
         transition: 'width 0.5s cubic-bezier(0.16,1,0.3,1)',
       }}
@@ -321,7 +322,7 @@ const StatementSection: React.FC = () => {
   return (
     <div
       ref={sectionRef}
-      className="relative px-8 md:px-20 py-28 md:py-40 overflow-hidden"
+      className="relative px-4 sm:px-8 md:px-20 py-20 sm:py-28 md:py-40 overflow-hidden"
       aria-label="Manifesto"
     >
       {/* oversized ghost background word */}
@@ -333,7 +334,7 @@ const StatementSection: React.FC = () => {
       </div>
 
       <p
-        className="mt-12 font-serif text-[clamp(1.9rem,4.8vw,4.5rem)] leading-[1.18] tracking-[-0.02em]"
+        className="mt-8 sm:mt-12 font-serif text-[clamp(1.4rem,4.8vw,4.5rem)] leading-[1.18] tracking-[-0.02em]"
         aria-label="Crafting visual stories that resonate deeply and leave a lasting emotional impact."
       >
         {STATEMENT_WORDS.map((w, i) => (
@@ -363,7 +364,7 @@ const ProcessStep: React.FC<typeof PROCESS_STEPS[number] & { isHovered: boolean;
   num, label, title, desc, accent, isHovered, onHover,
 }) => (
   <div
-    className="group relative p-8 md:p-10 overflow-hidden cursor-default transition-colors duration-500"
+    className="group relative p-5 sm:p-8 md:p-10 overflow-hidden cursor-default transition-colors duration-500"
     style={{ background: isHovered ? 'rgba(255,255,255,0.03)' : 'transparent' }}
     onMouseEnter={() => onHover(true)}
     onMouseLeave={() => onHover(false)}
@@ -384,7 +385,7 @@ const ProcessStep: React.FC<typeof PROCESS_STEPS[number] & { isHovered: boolean;
     <span
       className="absolute -top-2 right-4 font-black leading-none select-none pointer-events-none transition-all duration-500"
       style={{
-        fontSize: 'clamp(5rem,8vw,7rem)',
+        fontSize: 'clamp(3.5rem,8vw,7rem)',
         color: isHovered ? `${accent}18` : 'rgba(255,255,255,0.03)',
       }}
       aria-hidden="true"
@@ -401,12 +402,12 @@ const ProcessStep: React.FC<typeof PROCESS_STEPS[number] & { isHovered: boolean;
     </div>
 
     {/* title */}
-    <div className="font-black text-lg md:text-xl tracking-tight text-white mb-3 uppercase">
+    <div className="font-black text-base sm:text-lg md:text-xl tracking-tight text-white mb-3 uppercase">
       {title}
     </div>
 
     {/* desc */}
-    <p className="text-[13px] text-white/35 leading-[1.75]">{desc}</p>
+    <p className="text-[12px] sm:text-[13px] text-white/35 leading-[1.75]">{desc}</p>
 
     {/* arrow icon on hover */}
     <div
@@ -631,7 +632,7 @@ const GlimpseSection: React.FC = () => {
     <div
       ref={sectionRef}
       id="glimpse"
-      className="relative px-8 md:px-20 pt-24 pb-10 md:pt-36 md:pb-12 overflow-hidden"
+      className="relative px-4 sm:px-8 md:px-20 pt-20 sm:pt-24 pb-8 sm:pb-10 md:pt-36 md:pb-12 overflow-hidden"
       aria-label="A glimpse — achievements"
       style={{ perspective: '1200px' }}
     >
@@ -646,12 +647,12 @@ const GlimpseSection: React.FC = () => {
         GLIMPSE
       </div>
 
-      <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
+      <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 lg:gap-24 items-center">
 
         {/* ── Left: image with 3D tilt ──────────────────────────────── */}
         <div
           ref={cardWrapRef}
-          className="relative w-2/3 mx-10 my-10 lg:mx-0 aspect-[3/4] rounded-sm overflow-hidden cursor-none"
+          className="relative w-full sm:w-2/3 mx-auto sm:mx-10 my-6 sm:my-10 lg:mx-0 aspect-[3/4] rounded-sm overflow-hidden cursor-none"
           style={{ boxShadow: '0 40px 80px rgba(0,0,0,0.6)', transformStyle: 'preserve-3d' }}
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
@@ -705,11 +706,11 @@ const GlimpseSection: React.FC = () => {
         <div ref={rightColRef}>
           <div className="glimpse-heading mb-12">
             <div className="font-mono text-[10px] tracking-[0.35em] uppercase text-white/25 mb-4">A Glimpse</div>
-            <h2 className="font-black text-[clamp(2.4rem,5vw,5rem)] leading-[0.9] uppercase tracking-tight">
+            <h2 className="font-black text-[clamp(2rem,5vw,5rem)] leading-[0.9] uppercase tracking-tight">
               Behind the{' '}
               <span className="font-serif italic font-normal" style={{ color: '#1152d4' }}>Edit</span>
             </h2>
-            <p className="mt-5 text-white/40 text-[14px] leading-[1.8] max-w-[42ch]">
+            <p className="mt-4 sm:mt-5 text-white/40 text-[13px] sm:text-[14px] leading-[1.8] max-w-[42ch]">
               Years of obsessive craft, competitive wins, and cross-industry storytelling —
               all converging into a single frame at a time.
             </p>
@@ -734,7 +735,7 @@ const GlimpseSection: React.FC = () => {
                 </div>
                 {/* content */}
                 <div className="flex-1 min-w-0">
-                  <div className="font-black text-lg md:text-xl tracking-tight text-white uppercase leading-tight group-hover:translate-x-1 transition-transform duration-300">
+                  <div className="font-black text-base sm:text-lg md:text-xl tracking-tight text-white uppercase leading-tight group-hover:translate-x-1 transition-transform duration-300">
                     {a.title}
                   </div>
                   <div className="font-mono text-[9px] tracking-[0.2em] uppercase mt-1 mb-2" style={{ color: a.accent }}>
@@ -759,6 +760,7 @@ const HorizontalScrollSection: React.FC = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const clipsRef = useRef<HTMLDivElement>(null);
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+  const { trigger } = useHaptics();
 
   // ── Drag-to-scroll ───────────────────────────────────────────────────────
   const drag = useRef({ down: false, startX: 0, scrollLeft: 0 });
@@ -844,39 +846,39 @@ const HorizontalScrollSection: React.FC = () => {
       <ToolsMarquee />
 
       <div
-        className="relative px-8 md:px-20 pt-10 pb-24 md:pt-14 md:pb-32"
+        className="relative px-4 sm:px-8 md:px-20 pt-8 sm:pt-10 pb-20 sm:pb-24 md:pt-14 md:pb-32"
         id="showreel"
         aria-label="Sound shapes story"
       >
         {/* top section label */}
 
-        <div className="mt-16 grid grid-cols-1 md:grid-cols-2 gap-16 md:gap-24 items-center">
+        <div className="mt-10 sm:mt-16 grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 md:gap-24 items-center">
           {/* left */}
           <div className="wf-left">
             {/* oversized ghost */}
             <div
-              className="font-black text-[13vw] md:text-[8vw] leading-none text-white/[0.04] select-none uppercase tracking-tighter mb-2 -ml-1"
+              className="font-black text-[10vw] sm:text-[13vw] md:text-[8vw] leading-none text-white/[0.04] select-none uppercase tracking-tighter mb-2 -ml-1"
               aria-hidden="true"
             >
               SOUND
             </div>
-            <h2 className="font-black text-[clamp(2.6rem,5.5vw,5.5rem)] leading-[0.88] uppercase tracking-tight -mt-4 mb-8">
+            <h2 className="font-black text-[clamp(2rem,5.5vw,5.5rem)] leading-[0.88] uppercase tracking-tight -mt-4 mb-6 sm:mb-8">
               Sound<br />
               Shapes{' '}
               <span className="font-serif italic font-normal" style={{ color: '#1152d4', WebkitTextStroke: '0px' }}>
                 Story
               </span>
             </h2>
-            <p className="text-[14px] md:text-[15px] text-white/45 leading-[1.85] max-w-[38ch]">
+            <p className="text-[13px] sm:text-[14px] md:text-[15px] text-white/45 leading-[1.85] max-w-[38ch]">
               Every cut is intentional. Every beat synced. The rhythm of the edit breathes life into
               footage, transforming it into an emotional journey the audience feels in their bones.
             </p>
 
             {/* stat row */}
-            <div className="mt-10 flex gap-10 pt-8">
+            <div className="mt-8 sm:mt-10 flex gap-6 sm:gap-10 pt-6 sm:pt-8">
               {[['48kHz', 'Sample Rate'], ['24-bit', 'Depth'], ['5.1', 'Mix Output']].map(([val, lbl]) => (
                 <div key={lbl}>
-                  <div className="font-black text-2xl text-white tracking-tight">{val}</div>
+                  <div className="font-black text-xl sm:text-2xl text-white tracking-tight">{val}</div>
                   <div className="font-mono text-[8px] tracking-[0.25em] uppercase text-white/25 mt-1">{lbl}</div>
                 </div>
               ))}
@@ -915,9 +917,9 @@ const HorizontalScrollSection: React.FC = () => {
         aria-label="Latest clips — 07 projects"
       >
         {/* header */}
-        <div className="clips-header px-8 md:px-20 mb-14">
+        <div className="clips-header px-4 sm:px-8 md:px-20 mb-10 sm:mb-14">
           <div className="mt-8 flex items-end justify-between">
-            <h2 className="font-black uppercase tracking-tight leading-[0.88] text-[clamp(2.5rem,6vw,6rem)]">
+            <h2 className="font-black uppercase tracking-tight leading-[0.88] text-[clamp(2rem,6vw,6rem)]">
               Latest{' '}
               <span
                 className="text-transparent"
@@ -936,7 +938,7 @@ const HorizontalScrollSection: React.FC = () => {
         {/* card strip */}
         <div
           ref={clipsRef}
-          className="flex gap-[3px] overflow-x-auto px-8 md:px-20 select-none"
+          className="flex gap-[3px] overflow-x-auto px-4 sm:px-8 md:px-20 select-none"
           style={{ scrollbarWidth: 'none', cursor: 'grab' }}
           role="list"
           aria-label="Project clip cards"
@@ -953,7 +955,7 @@ const HorizontalScrollSection: React.FC = () => {
         </div>
 
         {/* scroll hint */}
-        <div className="px-8 md:px-20 mt-5 flex items-center gap-3 opacity-30" aria-hidden="true">
+        <div className="px-4 sm:px-8 md:px-20 mt-5 flex items-center gap-3 opacity-30" aria-hidden="true">
           <div className="h-px w-8 bg-white/40" />
           <span className="font-mono text-[8px] tracking-[0.3em] uppercase text-white/50">Drag to explore</span>
         </div>
@@ -962,14 +964,14 @@ const HorizontalScrollSection: React.FC = () => {
 
 
       <div
-        className="px-8 md:px-20 py-24 md:py-32"
+        className="px-4 sm:px-8 md:px-20 py-16 sm:py-24 md:py-32"
         style={{ background: 'linear-gradient(180deg, rgba(255,255,255,0.014) 0%, transparent 100%)' }}
         id="process-steps"
         aria-label="The Process — 4 steps"
       >
 
         <div className="mt-10 mb-16">
-          <h2 className="font-black text-[clamp(2.4rem,5.5vw,5.5rem)] leading-[0.88] uppercase tracking-tight">
+          <h2 className="font-black text-[clamp(2rem,5.5vw,5.5rem)] leading-[0.88] uppercase tracking-tight">
             How It{' '}
             <span className="font-serif italic font-normal" style={{ color: '#1152d4' }}>
               Works
@@ -979,7 +981,7 @@ const HorizontalScrollSection: React.FC = () => {
 
         {/* grid */}
         <div
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-px sm:gap-0"
           role="list"
           aria-label="4-step process"
         >
@@ -992,19 +994,23 @@ const HorizontalScrollSection: React.FC = () => {
               <ProcessStep
                 {...step}
                 isHovered={hoveredStep === i}
-                onHover={(h) => setHoveredStep(h ? i : null)}
+                onHover={(h) => {
+                  setHoveredStep(h ? i : null);
+                  if (h) trigger(40);
+                }}
               />
             </div>
           ))}
         </div>
 
         {/* bottom CTA strip */}
-        <div className="mt-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 pt-10 border-t border-white/[0.06]">
+        <div className="mt-12 sm:mt-16 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-5 sm:gap-6 pt-8 sm:pt-10 border-t border-white/[0.06]">
           <p className="text-white/30 text-sm leading-relaxed max-w-sm font-light">
             Every project begins with a conversation. Let's build something that outlasts the trend.
           </p>
           <a
             href="#contact"
+            onClick={() => trigger('success')}
             className="group inline-flex items-center gap-4 font-mono text-[11px] tracking-[0.25em] uppercase text-white/70
               hover:text-white transition-colors duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-blue-500"
           >

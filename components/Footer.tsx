@@ -2,11 +2,13 @@ import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useHaptics } from '../hooks/useHaptics';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 const Footer: React.FC = () => {
     const footerRef = useRef<HTMLElement>(null);
+    const { trigger } = useHaptics();
 
     useGSAP(() => {
         const heading = footerRef.current?.querySelector<HTMLElement>('.footer-heading');
@@ -53,7 +55,7 @@ const Footer: React.FC = () => {
                 <div>
                     <h2
                         className="footer-heading font-black leading-[0.88] uppercase tracking-tight mb-8"
-                        style={{ fontSize: 'clamp(2.6rem,6.5vw,6rem)' }}
+                        style={{ fontSize: 'clamp(2rem,6.5vw,6rem)' }}
                     >
                         Let's Make<br />
                         Something<br />
@@ -66,8 +68,9 @@ const Footer: React.FC = () => {
                         href="https://wa.me/919876543210"
                         target="_blank"
                         rel="noopener noreferrer"
+                        onClick={() => trigger('success')}
                         className="footer-email group inline-block font-serif italic text-[#25D366] hover:text-[#4fe888] transition-colors duration-200 focus:outline-none focus-visible:ring-1 focus-visible:ring-[#25D366]"
-                        style={{ fontSize: 'clamp(1.1rem,2.8vw,2.5rem)' }}
+                        style={{ fontSize: 'clamp(0.9rem,2.8vw,2.5rem)' }}
                     >
                         <span className="inline-flex items-center gap-2 md:gap-3">
                             WhatsApp Me
@@ -80,7 +83,7 @@ const Footer: React.FC = () => {
                         </span>
                     </a>
 
-                    <div className="mt-10 flex items-center gap-4">
+                    <div className="mt-6 sm:mt-10 flex items-center gap-4">
                         <span className="inline-flex items-center gap-2 border border-white/[0.12] rounded-full px-4 py-2">
                             <span className="w-[6px] h-[6px] rounded-full bg-emerald-400 animate-pulse" aria-hidden="true" />
                             <span className="font-mono text-[9px] tracking-[0.25em] uppercase text-white/50">Available for work</span>
@@ -104,6 +107,7 @@ const Footer: React.FC = () => {
                                 <li key={link}>
                                     <a
                                         href={`#${link.toLowerCase()}`}
+                                        onClick={() => trigger(30)}
                                         className="font-mono text-[9px] tracking-[0.2em] uppercase text-white/20 hover:text-blue-400 transition-colors duration-200"
                                     >
                                         {link}

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import gsap from 'gsap';
+import { useHaptics } from '../hooks/useHaptics';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LoadingScreen
@@ -10,6 +11,7 @@ import gsap from 'gsap';
 const LoadingScreen: React.FC = () => {
     const overlayRef = useRef<HTMLDivElement>(null);
     const [visible, setVisible] = useState(true);
+    const { trigger } = useHaptics();
 
     useEffect(() => {
         const hide = () => {
@@ -21,7 +23,10 @@ const LoadingScreen: React.FC = () => {
                 duration: 0.8,
                 ease: 'power2.inOut',
                 delay: 0.3,
-                onComplete: () => setVisible(false),
+                onComplete: () => {
+                    trigger('success');
+                    setVisible(false);
+                },
             });
         };
 

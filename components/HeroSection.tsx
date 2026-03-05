@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useHaptics } from '../hooks/useHaptics';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
@@ -14,6 +15,7 @@ const HeroSection: React.FC = () => {
   const stat4KRef = useRef<HTMLDivElement>(null);
   const stat60Ref = useRef<HTMLDivElement>(null);
   const statIconRef = useRef<SVGSVGElement>(null);
+  const { trigger } = useHaptics();
 
   // We use useGSAP to handle GSAP context and animations safely in React
   useGSAP(() => {
@@ -53,7 +55,13 @@ const HeroSection: React.FC = () => {
         { scale: 0.8, opacity: 0 },
         { scale: 1, opacity: 1, duration: 1.0 },
         "-=0.5"
-      );
+      )
+      // 7. "Rhythm." water-fill: gradient sweeps left → right
+      .to(".rhythm-fill", {
+        backgroundPosition: '0% 0',
+        duration: 1.4,
+        ease: "power2.inOut",
+      }, "-=0.8");
 
     // --- Stat counter animations (trigger after entry) ---
     const counterTl = gsap.timeline({ delay: 1.2 });
@@ -118,15 +126,17 @@ const HeroSection: React.FC = () => {
       }
     );
 
+    const isMobileView = window.innerWidth < 768;
+
     gsap.to(videoRef.current, {
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "1000px top",
+        end: isMobileView ? "500px top" : "1000px top",
         scrub: true,
       },
       scale: 1.1,
-      y: 800, // Move more significantly to open up space
+      y: isMobileView ? 200 : 800,
       ease: "none"
     });
 
@@ -134,11 +144,11 @@ const HeroSection: React.FC = () => {
       scrollTrigger: {
         trigger: containerRef.current,
         start: "top top",
-        end: "1000px top",
+        end: isMobileView ? "500px top" : "1000px top",
         scrub: true,
       },
       opacity: 1,
-      y: 400, // Counter-scroll to keep it centered in the screen longer
+      y: isMobileView ? 100 : 400,
       ease: "none"
     });
 
@@ -147,6 +157,7 @@ const HeroSection: React.FC = () => {
       trigger: containerRef.current,
       start: "100px top",
       onEnter: () => {
+        trigger('nudge');
         videoPlayerRef.current?.play().catch(console.error);
       }
     });
@@ -157,9 +168,9 @@ const HeroSection: React.FC = () => {
     <div
       id="work"
       ref={containerRef}
-      className="relative z-10 min-h-screen flex flex-col justify-center items-center px-4 bg-transparent pt-28 md:pt-40"
+      className="relative z-10 min-h-screen flex flex-col justify-center items-center px-3 sm:px-4 bg-transparent pt-24 sm:pt-28 md:pt-40 overflow-hidden"
     >
-      <div className="text-center mb-12">
+      <div className="text-center mb-8 sm:mb-12 w-full overflow-hidden">
         {/* Dynamic video editing elements */}
         <div className="flex justify-center items-center gap-4 md:gap-6 mb-6 md:mb-8">
           <div className="video-element relative">
@@ -186,11 +197,27 @@ const HeroSection: React.FC = () => {
           </div>
         </div>
 
-        <h1 className="hero-line flex flex-col items-center text-center mb-6 md:mb-8">
-          <span className="relative text-[3rem] sm:text-[4rem] md:text-[6rem] lg:text-[7.5rem] font-black text-[#e8e6e1] leading-[0.9] font-display uppercase tracking-tighter">
+        <h1 className="hero-line flex flex-col items-center text-center mb-4 sm:mb-6 md:mb-8">
+          <span
+            className="relative font-black text-[#e8e6e1] leading-[0.9] font-display uppercase tracking-tighter"
+            style={{ fontSize: 'clamp(1.8rem, 10vw, 7.5rem)' }}
+          >
             NARRATIVE THROUGH
           </span>
-          <span className="text-[3.5rem] sm:text-[4.5rem] md:text-[7rem] lg:text-[10rem] font-serif italic leading-[0.85] tracking-tight mt-1 md:mt-2 text-transparent" style={{ WebkitTextStroke: '2px #e8e6e1' }}>
+          {/* Rhythm — single-element water-fill via gradient */}
+          <span
+            className="rhythm-fill font-serif italic leading-[0.85] tracking-tight mt-1 md:mt-2 inline-block"
+            style={{
+              fontSize: 'clamp(2.2rem, 12vw, 10rem)',
+              WebkitTextStroke: 'clamp(1px, 0.3vw, 2px) #e8e6e1',
+              background: 'linear-gradient(90deg, #1152d4 50%, transparent 50%)',
+              backgroundSize: '200% 100%',
+              backgroundPosition: '100% 0',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              backgroundClip: 'text',
+            }}
+          >
             Rhythm.
           </span>
         </h1>
@@ -293,7 +320,7 @@ const HeroSection: React.FC = () => {
           className="absolute top-0 w-full text-center z-20 pt-2 opacity-0 pointer-events-none"
         >
           <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-4xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight leading-[1.1] mb-6 font-display">
+            <h2 className="text-2xl sm:text-4xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight leading-[1.1] mb-6 font-display">
               <span className="block mb-2">Crafting <span className="font-serif italic">visual</span> stories</span>
               <span className="block">that resonate deeply and leave a lasting emotional impact.</span>
             </h2>
