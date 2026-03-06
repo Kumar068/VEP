@@ -4,8 +4,10 @@ import { useHaptics } from '../hooks/useHaptics';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // LoadingScreen
-// Displays until window 'load' fires (all assets, videos, images resolved).
-// Drop your GIF at /public/content/loader.gif
+// Stays visible until BOTH:
+//   1. window 'load' has fired (all network resources resolved), AND
+//   2. the 'app:ready' custom event fires (React Suspense chunks resolved)
+// This prevents the flash of unstyled/partial content on mobile networks.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const LoadingScreen: React.FC = () => {
@@ -14,15 +16,22 @@ const LoadingScreen: React.FC = () => {
     const { trigger } = useHaptics();
 
     useEffect(() => {
-        const hide = () => {
+        let windowLoaded = document.readyState === 'complete';
+        let appReady = false;
+        let hideScheduled = false;
+
+        const tryHide = () => {
+            // Only dismiss once BOTH gates are open
+            if (!windowLoaded || !appReady || hideScheduled) return;
+            hideScheduled = true;
+
             if (!overlayRef.current) return;
 
-            // Small delay so the last paint is visible before fade
             gsap.to(overlayRef.current, {
                 opacity: 0,
                 duration: 0.8,
                 ease: 'power2.inOut',
-                delay: 0.3,
+                delay: 0.2,
                 onComplete: () => {
                     trigger('success');
                     setVisible(false);
@@ -30,17 +39,36 @@ const LoadingScreen: React.FC = () => {
             });
         };
 
-        const maxWait = setTimeout(hide, 1200); // Failsafe unblock after 1.2s
+        const onWindowLoad = () => {
+            windowLoaded = true;
+            tryHide();
+        };
 
-        if (document.readyState === 'complete') {
-            hide();
-        } else {
-            window.addEventListener('load', hide, { once: true });
+        const onAppReady = () => {
+            appReady = true;
+            tryHide();
+        };
+
+        // Gate 1 — window load
+        if (!windowLoaded) {
+            window.addEventListener('load', onWindowLoad, { once: true });
         }
 
+        // Gate 2 — React Suspense resolved (dispatched by AppReadySignal)
+        window.addEventListener('app:ready', onAppReady, { once: true } as EventListenerOptions);
+
+        // Failsafe: on very slow connections give up after 8s so the user
+        // isn't stuck forever. Adjust as needed.
+        const failsafe = setTimeout(() => {
+            windowLoaded = true;
+            appReady = true;
+            tryHide();
+        }, 8000);
+
         return () => {
-            clearTimeout(maxWait);
-            window.removeEventListener('load', hide);
+            clearTimeout(failsafe);
+            window.removeEventListener('load', onWindowLoad);
+            window.removeEventListener('app:ready', onAppReady);
         };
     }, []);
 
@@ -61,14 +89,14 @@ const LoadingScreen: React.FC = () => {
                     muted
                     playsInline
                     src="/content/loader.webm"
-                    className="w-32 h-32 object-contain" // Changed from w-full h-full object-cover rounded-full to match original size
+                    className="w-32 h-32 object-contain"
                     onError={(e) => {
-                        // Fallback: animated letter mark if no GIF present yet
+                        // Fallback: animated letter mark if no video present yet
                         (e.currentTarget as HTMLVideoElement).style.display = 'none';
                     }}
                 />
 
-                {/* Fallback spinner shown when no GIF */}
+                {/* Fallback spinner shown when no video */}
                 <div
                     className="w-12 h-12 rounded-full border-2 border-white/10 border-t-white"
                     style={{ animation: 'spin 0.9s linear infinite' }}

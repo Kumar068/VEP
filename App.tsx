@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from 'react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
@@ -14,6 +14,18 @@ const ShowreelPage = React.lazy(() => import('./components/ShowreelPage'));
 const HorizontalScrollSection = React.lazy(() => import('./components/HorizontalScrollSection'));
 const StopMotionSection = React.lazy(() => import('./components/StopMotionSection'));
 const Footer = React.lazy(() => import('./components/Footer'));
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AppReadySignal — mounts inside Suspense so it only runs after ALL lazy
+// chunks have successfully resolved. Dispatches 'app:ready' so LoadingScreen
+// knows it is safe to fade out without flashing partial content.
+// ─────────────────────────────────────────────────────────────────────────────
+function AppReadySignal() {
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent('app:ready'));
+  }, []);
+  return null;
+}
 
 function App() {
   useLayoutEffect(() => {
@@ -60,6 +72,8 @@ function App() {
         <HorizontalScrollSection />
         <StopMotionSection />
         <Footer />
+        {/* Fires 'app:ready' only after all lazy chunks above have mounted */}
+        <AppReadySignal />
       </React.Suspense>
     </div>
   );
