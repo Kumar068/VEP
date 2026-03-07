@@ -7,6 +7,7 @@ import InteractiveGridBackground from './components/InteractiveGridBackground';
 import Header from './components/header';
 import HeroSection from './components/HeroSection';
 import LoadingScreen from './components/LoadingScreen';
+import DevToolsOverlay from './components/DevToolsOverlay';
 import Lenis from 'lenis';
 
 // Lazy load below-the-fold components to slash main-thread TBT (Total Blocking Time)
@@ -61,6 +62,7 @@ function App() {
 
   return (
     <div className="relative min-h-screen bg-[#000000]">
+      <DevToolsOverlay />
       <LoadingScreen />
       <InteractiveGridBackground />
       <Header />
