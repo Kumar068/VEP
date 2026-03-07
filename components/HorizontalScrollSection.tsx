@@ -698,7 +698,7 @@ const GlimpseSection: React.FC = () => {
           {/* Name tag at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
             <div className="font-black text-lg uppercase tracking-tight text-white">Keerthan</div>
-            <div className="font-mono text-[9px] tracking-[0.3em] text-white/40 uppercase mt-0.5">Senior Video Editor</div>
+            <div className="font-mono text-[9px] tracking-[0.3em] text-white/40 uppercase mt-0.5">Professional Video Editor</div>
           </div>
         </div>
 

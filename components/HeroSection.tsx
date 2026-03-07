@@ -66,10 +66,10 @@ const HeroSection: React.FC = () => {
     // --- Stat counter animations (trigger after entry) ---
     const counterTl = gsap.timeline({ delay: 1.2 });
 
-    // 24FPS: count 0 → 24
+    // 24FPS: count 0 → 24 (Bollywood/Indian cinematic standard)
     const obj24 = { val: 0 };
     counterTl.to(obj24, {
-      val: 60,
+      val: 24,
       duration: 1.4,
       ease: "power2.out",
       onUpdate: () => {
@@ -78,15 +78,17 @@ const HeroSection: React.FC = () => {
       },
     }, 0);
 
-    // 4K: pop in with a scale bounce
-    if (stat4KRef.current) {
-      counterTl.fromTo(
-        stat4KRef.current,
-        { scale: 0.5, opacity: 0 },
-        { scale: 1, opacity: 1, duration: 0.7, ease: "back.out(1.7)" },
-        0.3
-      );
-    }
+    // 4K stat ref: animate 0 → 30, show "30+"
+    const obj30 = { val: 0 };
+    counterTl.to(obj30, {
+      val: 30,
+      duration: 1.2,
+      ease: "power2.out",
+      onUpdate: () => {
+        if (stat4KRef.current)
+          stat4KRef.current.textContent = `${Math.round(obj30.val)}+`;
+      },
+    }, 0.3);
 
     // 60+: count 0 → 60
     const obj60 = { val: 0 };
@@ -245,7 +247,7 @@ const HeroSection: React.FC = () => {
                 backgroundClip: 'text',
               }}
             >0FPS</div>
-            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Frame Rate</div>
+            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Cinematic FPS</div>
           </div>
 
           <div
@@ -262,10 +264,9 @@ const HeroSection: React.FC = () => {
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 backgroundClip: 'text',
-                opacity: 0,
               }}
-            >4K</div>
-            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Resolution</div>
+            >0+</div>
+            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Industry Ready</div>
           </div>
 
           <div
@@ -284,7 +285,7 @@ const HeroSection: React.FC = () => {
                 backgroundClip: 'text',
               }}
             >0+</div>
-            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Projects</div>
+            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Reels Delivered</div>
           </div>
 
           <div
@@ -301,7 +302,7 @@ const HeroSection: React.FC = () => {
                 <path d="M12 12c-2-2.67-4-4-6-4a4 4 0 1 0 0 8c2 0 4-1.33 6-4Zm0 0c2 2.67 4 4 6 4a4 4 0 1 0 0-8c-2 0-4 1.33-6 4Z" />
               </svg>
             </div>
-            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Creativity</div>
+            <div className="text-white/40 text-[8px] md:text-[10px] tracking-[0.2em] uppercase font-bold">Filmy Magic</div>
           </div>
         </div>
       </div>

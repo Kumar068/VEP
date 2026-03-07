@@ -140,9 +140,9 @@ const Footer: React.FC = () => {
                 <div className="footer-meta text-left md:text-right">
                     {/* role + location */}
                     <div className="mb-6 space-y-1">
-                        <div className="font-mono text-[9px] tracking-[0.2em] text-white/20 uppercase">Video Editor</div>
-                        <div className="font-mono text-[9px] tracking-[0.2em] text-white/20 uppercase">Post-Production</div>
-                        <div className="font-mono text-[9px] tracking-[0.2em] text-white/20 uppercase">Bengaluru, India</div>
+                        <div className="font-mono text-[9px] tracking-[0.2em] text-white/70 uppercase">Professional Video Editor</div>
+                        <div className="font-mono text-[9px] tracking-[0.2em] text-white/70 uppercase">Post-Production</div>
+                        <div className="font-mono text-[9px] tracking-[0.2em] text-white/70 uppercase">Bengaluru, India</div>
                     </div>
 
                     {/* ── Social icons ────────────────────────────────────────── */}
@@ -155,7 +155,7 @@ const Footer: React.FC = () => {
                                 rel="noopener noreferrer"
                                 aria-label={label}
                                 onClick={() => trigger(30)}
-                                className="w-8 h-8 flex items-center justify-center rounded-full border border-white/[0.1] text-white/30 hover:text-white hover:border-white/30 hover:bg-white/[0.06] transition-all duration-200"
+                                className="w-8 h-8 flex items-center justify-center rounded-full border border-white/[0.3] text-white/60 hover:text-white hover:border-white/60 hover:bg-white/[0.06] transition-all duration-200"
                             >
                                 <span className="w-[15px] h-[15px]">{icon}</span>
                             </a>
@@ -170,7 +170,7 @@ const Footer: React.FC = () => {
                                     <a
                                         href={`#${link.toLowerCase()}`}
                                         onClick={() => trigger(30)}
-                                        className="font-mono text-[9px] tracking-[0.2em] uppercase text-white/20 hover:text-blue-400 transition-colors duration-200"
+                                        className="font-mono text-[9px] tracking-[0.2em] uppercase text-white/60 hover:text-blue-400 transition-colors duration-200"
                                     >
                                         {link}
                                     </a>
@@ -183,7 +183,7 @@ const Footer: React.FC = () => {
 
             {/* ── Bottom bar ──────────────────────────────────────────────── */}
             <div className="relative px-6 md:px-20 py-4 md:py-5 border-t border-white/[0.06] flex flex-col sm:flex-row items-center justify-between gap-3">
-                <span className="font-mono text-[8px] tracking-[0.2em] text-white/15 uppercase">
+                <span className="font-mono text-[8px] tracking-[0.2em] text-white/40 uppercase">
                     © 2026 KEERTHAN — All rights reserved
                 </span>
 
@@ -197,14 +197,14 @@ const Footer: React.FC = () => {
                             rel="noopener noreferrer"
                             aria-label={label}
                             onClick={() => trigger(30)}
-                            className="w-7 h-7 flex items-center justify-center rounded-full border border-white/[0.08] text-white/20 hover:text-white hover:border-white/25 transition-all duration-200"
+                            className="w-7 h-7 flex items-center justify-center rounded-full border border-white/[0.2] text-white/50 hover:text-white hover:border-white/40 transition-all duration-200"
                         >
                             <span className="w-[13px] h-[13px]">{icon}</span>
                         </a>
                     ))}
                 </div>
 
-                <span className="font-mono text-[8px] tracking-[0.15em] text-white/[0.08] uppercase">
+                <span className="font-mono text-[8px] tracking-[0.15em] text-white/30 uppercase">
                     VEP v2.0
                 </span>
             </div>

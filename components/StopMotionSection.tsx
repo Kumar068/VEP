@@ -172,7 +172,7 @@ const StopMotionSection: React.FC = () => {
         return () => window.removeEventListener('resize', handleResize);
     }, { dependencies: [images, isMobile], scope: containerRef });
 
-    const bioText = "I'm Keerthan, a Senior Video Editor currently working at a digital marketing agency, specializing in high-retention content. With experience across 30+ industries and a 1st place win in Karnataka's competitive editing challenge.";
+    const bioText = "I'm Keerthan, a Professional Video Editor currently working at a digital marketing agency, specializing in high-retention content. With experience across 30+ industries and a 1st place win in Karnataka's competitive editing challenge.";
 
     const loadTarget = isMobile ? 1 : FRAME_COUNT;
 

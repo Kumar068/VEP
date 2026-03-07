@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useHaptics } from '../hooks/useHaptics';
@@ -9,6 +9,15 @@ const Header: React.FC = () => {
   const navRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
   const { trigger } = useHaptics();
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const check = () => setIsMobile(window.matchMedia('(max-width: 767px)').matches);
+    check();
+    const mq = window.matchMedia('(max-width: 767px)');
+    mq.addEventListener('change', check);
+    return () => mq.removeEventListener('change', check);
+  }, []);
 
   useGSAP(() => {
     // Reveal Animation on Load
@@ -29,7 +38,7 @@ const Header: React.FC = () => {
         "-=0.6"
       )
       .fromTo(ctaRef.current,
-        { x: 20, opacity: 0 },
+        { x: isMobile ? 0 : 20, opacity: 0 },
         { x: 0, opacity: 1, duration: 0.8, ease: "power3.out" },
         "-=0.6"
       );
@@ -57,6 +66,7 @@ const Header: React.FC = () => {
   };
 
   const handleMagneticMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isMobile) return; // no magnetic effect on touch devices
     const btn = e.currentTarget;
     const rect = btn.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -82,6 +92,7 @@ const Header: React.FC = () => {
   };
 
   const handleMagneticLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    if (isMobile) return;
     const btn = e.currentTarget;
     gsap.to(btn, {
       x: 0,
@@ -104,7 +115,7 @@ const Header: React.FC = () => {
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 w-full z-50 px-4 py-4 sm:px-6 sm:py-5 md:px-8 md:py-6 flex justify-between items-center"
+      className="fixed top-0 left-0 w-full max-w-[100vw] overflow-hidden z-50 px-4 py-3 sm:px-6 sm:py-5 md:px-8 md:py-6 flex justify-between items-center"
     >
       {/* BACKGROUND BLUR STRIP */}
       {/* We separate this to keep the text sharp while blurring the background */}
@@ -164,7 +175,7 @@ const Header: React.FC = () => {
           onMouseMove={handleMagneticMove}
           onMouseLeave={handleMagneticLeave}
           onClick={() => trigger('success')}
-          className="group relative px-5 py-2.5 sm:px-6 sm:py-3 md:px-8 md:py-3 overflow-hidden rounded-full bg-white text-black text-[10px] sm:text-xs font-bold tracking-[0.15em] sm:tracking-[0.2em] uppercase font-display transition-transform duration-300"
+          className="group relative px-3 py-2 sm:px-6 sm:py-3 md:px-8 md:py-3 overflow-hidden rounded-full bg-white text-black text-[10px] sm:text-xs font-bold tracking-[0.1em] sm:tracking-[0.2em] uppercase font-display transition-transform duration-300"
         >
           <span className="relative z-10 group-hover:text-white transition-colors duration-300 inline-block">Let's Talk</span>
           <div className="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
