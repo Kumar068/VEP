@@ -110,7 +110,7 @@ const Footer: React.FC = () => {
                     </h2>
 
                     <a
-                        href="https://wa.me/919876543210?text=Hi%2C%20I%20am%20interested%20in%20your%20work.%20I%20want%20to%20discuss%20in%20detail."
+                        href="https://wa.me/919620020041?text=Hi%2C%20I%20am%20interested%20in%20your%20work.%20I%20want%20to%20discuss%20in%20detail."
                         target="_blank"
                         rel="noopener noreferrer"
                         onClick={() => trigger('success')}

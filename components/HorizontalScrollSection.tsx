@@ -515,7 +515,7 @@ const ACHIEVEMENTS = [
   },
   {
     num: '04',
-    title: '60+ Projects',
+    title: '2000+ Projects',
     sub: 'Delivered & Counting',
     detail: 'From concept to final export — every frame intentional.',
     accent: '#f39c12',

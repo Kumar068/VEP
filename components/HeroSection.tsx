@@ -91,7 +91,7 @@ const HeroSection: React.FC = () => {
     // 60+: count 0 → 60
     const obj60 = { val: 0 };
     counterTl.to(obj60, {
-      val: 60,
+      val: 2000,
       duration: 1.4,
       ease: "power2.out",
       onUpdate: () => {
@@ -358,7 +358,7 @@ const HeroSection: React.FC = () => {
             controls={false}
             preload="metadata"
           >
-            <source src="/content/hero-video-compressed.webm" type="video/webm" />
+            <source src="/content/hero-video.webm" type="video/webm" />
           </video>
 
           {/* Vignette */}

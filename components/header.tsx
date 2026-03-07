@@ -7,7 +7,7 @@ const Header: React.FC = () => {
   const headerRef = useRef<HTMLElement>(null);
   const logoRef = useRef<HTMLDivElement>(null);
   const navRef = useRef<HTMLDivElement>(null);
-  const ctaRef = useRef<HTMLButtonElement>(null);
+  const ctaRef = useRef<HTMLAnchorElement>(null);
   const { trigger } = useHaptics();
 
   useGSAP(() => {
@@ -56,7 +56,7 @@ const Header: React.FC = () => {
     });
   };
 
-  const handleMagneticMove = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMagneticMove = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const btn = e.currentTarget;
     const rect = btn.getBoundingClientRect();
     const x = e.clientX - rect.left - rect.width / 2;
@@ -81,7 +81,7 @@ const Header: React.FC = () => {
     }
   };
 
-  const handleMagneticLeave = (e: React.MouseEvent<HTMLButtonElement>) => {
+  const handleMagneticLeave = (e: React.MouseEvent<HTMLAnchorElement>) => {
     const btn = e.currentTarget;
     gsap.to(btn, {
       x: 0,
@@ -111,7 +111,7 @@ const Header: React.FC = () => {
       <div className="absolute inset-0 bg-black/10 backdrop-blur-sm border-b border-white/5" />
 
       {/* 1. LOGO AREA */}
-      <div ref={logoRef} className="relative z-10 flex items-center gap-2 cursor-pointer group" onClick={() => trigger(30)}>
+      <div ref={logoRef} className="relative z-10 flex items-center gap-2 cursor-pointer group" onClick={() => { trigger(30); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
         <div className="w-8 h-8 bg-white/10 rounded-full flex items-center justify-center group-hover:bg-white/20 transition-colors duration-300">
           <div className="w-2.5 h-2.5 bg-white rounded-full group-hover:scale-110 transition-transform" />
         </div>
@@ -156,8 +156,11 @@ const Header: React.FC = () => {
         </div>
 
         {/* Primary Button */}
-        <button
+        <a
           ref={ctaRef}
+          href="https://wa.me/919620020041?text=Hi%2C%20I%20am%20interested%20in%20your%20work.%20I%20want%20to%20discuss%20in%20detail."
+          target="_blank"
+          rel="noopener noreferrer"
           onMouseMove={handleMagneticMove}
           onMouseLeave={handleMagneticLeave}
           onClick={() => trigger('success')}
@@ -165,7 +168,7 @@ const Header: React.FC = () => {
         >
           <span className="relative z-10 group-hover:text-white transition-colors duration-300 inline-block">Let's Talk</span>
           <div className="absolute inset-0 bg-black translate-y-full group-hover:translate-y-0 transition-transform duration-300 ease-out" />
-        </button>
+        </a>
       </div>
     </header>
   );
