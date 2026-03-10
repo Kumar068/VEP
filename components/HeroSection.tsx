@@ -1,10 +1,181 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState, useCallback } from 'react';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { useHaptics } from '../hooks/useHaptics';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
+
+
+// ─── Play / Pause / Stop cycling button ───────────────────────────────────
+// SVG icon paths for each state (viewBox 0 0 24 24)
+const PLAY_STATE_ICONS = {
+  play: {
+    label: '▶ PLAY',
+    // A filled triangle pointing right
+    d: 'M5 3l14 9L5 21V3z',
+  },
+  pause: {
+    label: '⏸ PAUSE',
+    // Two vertical bars
+    d: 'M6 4h4v16H6V4zm8 0h4v16h-4V4z',
+  },
+  stop: {
+    label: '⏹ STOP',
+    // A filled square
+    d: 'M4 4h16v16H4V4z',
+  },
+} as const;
+
+type PlayState = keyof typeof PLAY_STATE_ICONS;
+
+const CYCLE: PlayState[] = ['play', 'pause', 'stop'];
+
+// Curated dot color palette (HSL values chosen to look great on dark bg)
+const DOT_COLORS = [
+  '#ffffff', // white (initial)
+  '#4f8ef7', // electric blue
+  '#f7c948', // warm amber
+  '#3de89e', // mint green
+  '#f74f8e', // hot pink
+  '#bf6ef7', // lavender purple
+  '#f7693e', // cinematic orange
+] as const;
+
+interface PlayDotRowProps {
+  className?: string;
+}
+
+const PlayDotRow: React.FC<PlayDotRowProps> = () => {
+  const [playState, setPlayState] = useState<PlayState>('play');
+  const [dotColorIdx, setDotColorIdx] = useState(0);
+
+  const iconRef = useRef<SVGPathElement>(null);
+  const btnRef = useRef<HTMLDivElement>(null);
+  const dotRef = useRef<HTMLDivElement>(null);
+
+  const handlePlayClick = useCallback(() => {
+    const currentIdx = CYCLE.indexOf(playState);
+    const nextState = CYCLE[(currentIdx + 1) % CYCLE.length];
+
+    // Icon morph: pop out → in
+    if (iconRef.current) {
+      gsap.timeline()
+        .to(iconRef.current, {
+          scale: 0,
+          opacity: 0,
+          duration: 0.18,
+          ease: 'power2.in',
+          transformOrigin: '50% 50%',
+          onComplete: () => setPlayState(nextState),
+        })
+        .to(iconRef.current, {
+          scale: 1,
+          opacity: 1,
+          duration: 0.28,
+          ease: 'back.out(2.5)',
+          transformOrigin: '50% 50%',
+        });
+    } else {
+      setPlayState(nextState);
+    }
+
+    // Button border pulse
+    if (btnRef.current) {
+      gsap.fromTo(
+        btnRef.current,
+        { boxShadow: '0 0 0 0px rgba(255,255,255,0.6)' },
+        {
+          boxShadow: '0 0 0 8px rgba(255,255,255,0)',
+          duration: 0.5,
+          ease: 'power2.out',
+        }
+      );
+    }
+  }, [playState]);
+
+  const handleDotClick = useCallback(() => {
+    const nextIdx = (dotColorIdx + 1) % DOT_COLORS.length;
+    setDotColorIdx(nextIdx);
+
+    if (dotRef.current) {
+      gsap.timeline()
+        .to(dotRef.current, {
+          scale: 0.5,
+          duration: 0.12,
+          ease: 'power2.in',
+        })
+        .to(dotRef.current, {
+          scale: 1.3,
+          duration: 0.22,
+          ease: 'back.out(3)',
+        })
+        .to(dotRef.current, {
+          scale: 1,
+          duration: 0.18,
+          ease: 'power3.out',
+        });
+    }
+  }, [dotColorIdx]);
+
+  const iconData = PLAY_STATE_ICONS[playState];
+
+  return (
+    <div className="video-element flex justify-center items-center gap-4 md:gap-6 mb-6 md:mb-8 mt-5">
+
+      {/* ── Play / Pause / Stop button ── */}
+      <div className="video-element relative cursor-pointer select-none" onClick={handlePlayClick}>
+        <div
+          ref={btnRef}
+          className="w-5 h-5 md:w-8 md:h-8 border-2 border-white/30 rounded-full flex items-center justify-center transition-colors duration-300"
+          style={{ boxShadow: '0 0 0 0px rgba(255,255,255,0)' }}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            className="text-white w-3 h-3 md:w-4 md:h-4"
+            aria-label={iconData.label}
+          >
+            <path ref={iconRef} d={iconData.d} />
+          </svg>
+        </div>
+      </div>
+
+      {/* ── REC indicator (static, middle) ── */}
+      <div className="video-element flex flex-col gap-0.5 items-center">
+        <div className="flex gap-0.5">
+          <div className="w-1 h-1 bg-blue-500 rounded-full animate-pulse"></div>
+          <div className="w-1 h-1 bg-yellow-500 rounded-full"></div>
+          <div className="w-1 h-1 bg-green-500 rounded-full"></div>
+        </div>
+        <div className="text-white/40 text-[7px] md:text-[9px] font-mono">REC</div>
+      </div>
+
+      {/* ── Color-cycling bounce dot ── */}
+      <div
+        className="video-element relative cursor-pointer select-none"
+        onClick={handleDotClick}
+      >
+        <div className="w-5 h-5 md:w-8 md:h-8 border-2 border-white/30 rounded-full flex items-center justify-center">
+          <div
+            ref={dotRef}
+            className="w-2.5 h-2.5 md:w-4 md:h-4 rounded-full transition-colors duration-300"
+            style={{
+              backgroundColor: DOT_COLORS[dotColorIdx],
+              boxShadow: `0 0 8px 2px ${DOT_COLORS[dotColorIdx]}66`,
+            }}
+          />
+        </div>
+        <div
+          className="absolute inset-0 border-2 rounded-full animate-ping"
+          style={{ borderColor: `${DOT_COLORS[dotColorIdx]}44` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 
 const HeroSection: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -173,30 +344,7 @@ const HeroSection: React.FC = () => {
     >
       <div className="text-center mb-8 sm:mb-12 w-full overflow-hidden">
         {/* Dynamic video editing elements */}
-        <div className="flex justify-center items-center gap-4 md:gap-6 mb-6 md:mb-8">
-          <div className="video-element relative">
-            <div className="w-10 h-10 md:w-16 md:h-16 border-2 border-white/30 rounded-lg flex items-center justify-center">
-              <span className="text-white text-lg md:text-2xl animate-pulse">▶</span>
-            </div>
-            <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-6 md:w-8 h-0.5 bg-white/40"></div>
-          </div>
-
-          <div className="video-element flex flex-col gap-1">
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-500 rounded-full animate-pulse"></div>
-              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-yellow-500 rounded-full"></div>
-              <div className="w-1.5 h-1.5 md:w-2 md:h-2 bg-green-500 rounded-full"></div>
-            </div>
-            <div className="text-white/40 text-[9px] md:text-xs font-mono">REC</div>
-          </div>
-
-          <div className="video-element relative">
-            <div className="w-10 h-10 md:w-16 md:h-16 border-2 border-white/30 rounded-lg flex items-center justify-center">
-              <div className="text-white text-lg md:text-xl">◉</div>
-            </div>
-            <div className="absolute inset-0 border-2 border-white/20 rounded-lg animate-ping"></div>
-          </div>
-        </div>
+        <PlayDotRow />
 
         <h1 className="hero-line flex flex-col items-center text-center mb-4 sm:mb-6 md:mb-8">
           <span
@@ -320,9 +468,21 @@ const HeroSection: React.FC = () => {
           className="absolute top-0 w-full text-center z-20 pt-2 opacity-0 pointer-events-none"
         >
           <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl sm:text-4xl md:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-b from-white to-white/60 tracking-tight leading-[1.1] mb-6 font-display">
-              <span className="block mb-2">Crafting <span className="font-serif italic">visual</span> stories</span>
-              <span className="block">that resonate deeply and leave a lasting emotional impact.</span>
+            <h2 className="text-2xl sm:text-4xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6 font-display text-white">
+              <span className="block mb-4 overflow-hidden">
+                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">Crafting</span>{' '}
+                <span className="font-serif italic bg-gradient-to-br from-[#a78bfa] via-[#8b5cf6] to-[#6366f1] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(139,92,246,0.25)]">visual</span>{' '}
+                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">stories</span>
+              </span>
+              <span className="block mb-4 overflow-hidden">
+                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">built to</span>{' '}
+                <span className="text-[#a5b4fc] drop-shadow-[0_0_15px_rgba(165,180,252,0.3)]">resonate</span>{' '}
+                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">deeply</span>
+              </span>
+              <span className="block overflow-hidden">
+                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">with</span>{' '}
+                <span className="bg-gradient-to-br from-[#22d3ee] via-[#0ea5e9] to-[#2563eb] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(14,165,233,0.25)]">lasting impact</span>.
+              </span>
             </h2>
           </div>
         </div>

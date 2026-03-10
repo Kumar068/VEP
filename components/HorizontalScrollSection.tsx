@@ -101,19 +101,18 @@ const WaveformCanvas: React.FC = () => {
 
       for (let i = 0; i < bars; i++) {
         const x = i * gap;
-        const h = (Math.sin(i * 0.25 + off.current) * 0.45 + 0.55) * cy * 0.9;
         const t = i / bars;
-        // gradient colour across bar row
+        const h = (Math.sin(i * 0.25 + off.current) * 0.45 + 0.55) * cy * 0.9;
         const r = Math.round(74 + t * 181);
         const g = Math.round(108 + t * -68);
         const b = Math.round(247 + t * -216);
         const a = 0.25 + Math.abs(Math.sin(i * 0.25 + off.current)) * 0.65;
+
         ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
-        // top half
         ctx.beginPath();
         ctx.roundRect(x, cy - h, bw, h, 2);
         ctx.fill();
-        // mirror bottom
+
         ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.35})`;
         ctx.beginPath();
         ctx.roundRect(x, cy, bw, h * 0.5, 2);
@@ -137,15 +136,13 @@ const WaveformCanvas: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative rounded-sm overflow-hidden border border-white/[0.07] bg-white/[0.02]" style={{ height: '160px' }}>
-      {/* HUD labels */}
+    <div className="relative h-full w-full rounded-sm overflow-hidden border border-white/[0.07] bg-white/[0.02]" style={{ height: '160px' }}>
       <span className="absolute top-2 left-3 font-mono text-[7px] tracking-[0.25em] text-white/20 uppercase z-10 select-none">
         Audio Waveform
       </span>
       <span className="absolute top-2 right-3 font-mono text-[7px] tracking-[0.2em] text-white/20 uppercase z-10 select-none">
         48kHz / 24bit
       </span>
-      {/* shimmer playhead */}
       <div
         className="absolute top-0 bottom-0 w-px bg-gradient-to-b from-transparent via-blue-500 to-transparent z-10"
         style={{ animation: 'wf-playhead 4s linear infinite' }}
@@ -158,6 +155,262 @@ const WaveformCanvas: React.FC = () => {
           5%   { opacity: 1; }
           95%  { opacity: 1; }
           to   { left: 100%; opacity: 0; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const ColorPaletteCanvas: React.FC = () => {
+  const [isGraded, setIsGraded] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => setIsGraded(true), 1000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
+    <div className="relative h-full w-full rounded-sm overflow-hidden border border-white/[0.07] bg-white/[0.02] flex flex-col" style={{ height: '160px' }}>
+      <span className="absolute top-2 left-3 font-mono text-[7px] tracking-[0.25em] text-white/20 uppercase z-10 select-none">
+        Color Histogram
+      </span>
+      <span className="absolute top-2 right-3 font-mono text-[7px] tracking-[0.2em] text-white/20 uppercase z-10 select-none">
+        REC.709 / DCI-P3
+      </span>
+
+      <div
+        className="flex-1 flex gap-px p-1 pt-8 pb-4 transition-all duration-1000 ease-in-out"
+        style={{ filter: isGraded ? 'contrast(1.6) saturate(1.1)' : 'contrast(1) saturate(1)' }}
+      >
+        {[
+          { color: '#1a3a3a', label: 'Shadow' },
+          { color: '#2c5d5d', label: 'Teal' },
+          { color: '#4d8c8c', label: 'Cyan' },
+          { color: '#d48a5f', label: 'Skin' },
+          { color: '#b95d3a', label: 'Rust' },
+          { color: '#8c4a32', label: 'Clay' },
+          { color: '#4a2c2c', label: 'Dark' },
+          { color: '#2c2c36', label: 'Deep' },
+          { color: '#5a6b5d', label: 'Olive' },
+          { color: '#3d3d4d', label: 'Slate' }
+        ].map((s, i) => (
+          <div key={i} className="flex-1 relative group overflow-hidden rounded-xs transition-transform duration-500 hover:scale-[1.02]">
+            <div
+              className="absolute inset-0 transition-opacity duration-1000"
+              style={{
+                backgroundColor: s.color,
+                animation: `palette-pulse ${3 + i}s ease-in-out infinite alternate`
+              }}
+            />
+            <div className="absolute bottom-1 left-1.5 font-mono text-[6px] text-white/30 uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+              {s.label}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="h-4 px-3 flex items-center justify-between border-t border-white/[0.05]">
+        <div className="flex gap-2">
+          {[0, 1, 2, 3].map(i => (
+            <div key={i} className="w-1 h-1 rounded-full bg-white/10" style={{ animation: `blink 1s infinite ${i * 0.2}s` }} />
+          ))}
+        </div>
+        <span className="font-mono text-[6px] text-white/15 uppercase tracking-[0.3em]">LUT: CINEMA_X</span>
+      </div>
+
+      <style>{`
+        @keyframes palette-pulse {
+          from { opacity: 0.8; filter: saturate(1); }
+          to { opacity: 1; filter: saturate(1.4); }
+        }
+        @keyframes blink {
+          0%, 100% { opacity: 0.2; }
+          50% { opacity: 1; }
+        }
+      `}</style>
+    </div>
+  );
+};
+
+const FilmingCanvas: React.FC = () => {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const rafRef = useRef<number>(0);
+  const time = useRef(0);
+
+  useEffect(() => {
+    const c = canvasRef.current;
+    if (!c) return;
+    const ctx = c.getContext('2d')!;
+
+    // Generate mountains with daylight colors
+    const peaks = Array.from({ length: 45 }, (_, i) => {
+      const isForeground = Math.random() > 0.7;
+      return {
+        x: (Math.random() - 0.5) * 1400,
+        z: Math.random() * 800 + 100,
+        h: Math.random() * 250 + 100,
+        baseColor: isForeground ? 'hsl(210, 10%, 40%)' : 'hsl(210, 5%, 60%)',
+        accentColor: isForeground ? 'hsl(0, 0%, 95%)' : 'hsl(210, 20%, 80%)', // snow caps
+        width: Math.random() * 200 + 150
+      };
+    });
+
+    // Generate lush forest vibes
+    const trees = Array.from({ length: 120 }, () => ({
+      x: (Math.random() - 0.5) * 1600,
+      z: Math.random() * 600 + 100,
+      size: Math.random() * 20 + 10,
+      color: `hsl(${140 + Math.random() * 20}, ${30 + Math.random() * 20}%, ${15 + Math.random() * 10}%)`
+    }));
+
+    // Floating daylight dust/particles
+    const particles = Array.from({ length: 50 }, () => ({
+      x: Math.random() * 1000 - 500,
+      y: Math.random() * 1000 - 500,
+      z: Math.random() * 800 + 100,
+      s: Math.random() * 1.5 + 0.5,
+      o: Math.random() * 0.3 + 0.1
+    }));
+
+    const draw = () => {
+      c.width = c.offsetWidth;
+      c.height = c.offsetHeight;
+      ctx.clearRect(0, 0, c.width, c.height);
+
+      const fov = 450;
+      const zoomValue = 1 + (time.current % 1200) / 400;
+
+      // 1. Draw Bright Sky Gradient
+      const skyGrad = ctx.createLinearGradient(0, 0, 0, c.height);
+      skyGrad.addColorStop(0, '#4facfe'); // Sky blue
+      skyGrad.addColorStop(0.6, '#00f2fe'); // Cyan blue
+      skyGrad.addColorStop(1, '#ffffff'); // Horizon
+      ctx.fillStyle = skyGrad;
+      ctx.fillRect(0, 0, c.width, c.height);
+
+      // 2. Draw Dust Particles
+      particles.forEach(p => {
+        const z = (p.z / zoomValue);
+        if (z <= 5) return;
+        const scale = fov / z;
+        const x2d = c.width / 2 + (p.x + Math.sin(time.current * 0.005 + p.x) * 30) * scale;
+        const y2d = c.height / 2 + (p.y + Math.cos(time.current * 0.005 + p.y) * 30) * scale;
+        ctx.fillStyle = `rgba(255, 255, 255, ${p.o * Math.min(1, scale / 5)})`;
+        ctx.beginPath();
+        ctx.arc(x2d, y2d, p.s * scale * 0.2, 0, Math.PI * 2);
+        ctx.fill();
+      });
+
+      // 3. Draw Peaks (Daylight style)
+      peaks.sort((a, b) => b.z - a.z);
+      peaks.forEach(p => {
+        const z = (p.z / zoomValue);
+        if (z <= 5) return;
+
+        const scale = fov / z;
+        const x2d = c.width / 2 + p.x * scale;
+        const y2d = c.height / 2 + (180 - p.h) * scale;
+        const base2d = c.height / 2 + 180 * scale;
+        const halfW = (p.width / 2) * scale;
+        const opacity = Math.min(1, Math.max(0, 1.3 - z / 800));
+
+        const grad = ctx.createLinearGradient(x2d, y2d, x2d, base2d);
+        grad.addColorStop(0, p.baseColor.replace('%)', `%, ${opacity})`).replace('hsl', 'hsla'));
+        grad.addColorStop(0.3, p.accentColor.replace('%)', `%, ${opacity * 0.8})`).replace('hsl', 'hsla'));
+        grad.addColorStop(1, 'rgba(255,255,255,0)');
+
+        ctx.fillStyle = grad;
+        ctx.beginPath();
+        ctx.moveTo(x2d, y2d);
+        ctx.lineTo(x2d - halfW, base2d);
+        ctx.lineTo(x2d + halfW, base2d);
+        ctx.closePath();
+        ctx.fill();
+
+        // Snow cap highlight
+        ctx.strokeStyle = `rgba(255,255,255,${opacity * 0.5})`;
+        ctx.lineWidth = 1 * scale;
+        ctx.beginPath();
+        ctx.moveTo(x2d, y2d);
+        ctx.lineTo(x2d - halfW * 0.3, y2d + (base2d - y2d) * 0.3);
+        ctx.stroke();
+      });
+
+      // 4. Draw Lush Forest
+      trees.forEach(t => {
+        const z = (t.z / zoomValue);
+        if (z <= 5) return;
+        const scale = fov / z;
+        const x2d = c.width / 2 + t.x * scale;
+        const base2d = c.height / 2 + 180 * scale;
+        const treeH = t.size * scale;
+        const forestOpacity = Math.min(0.8, Math.max(0, 1 - z / 700));
+        ctx.fillStyle = t.color.replace('%)', `%, ${forestOpacity})`).replace('hsl', 'hsla');
+        ctx.beginPath();
+        ctx.moveTo(x2d, base2d - treeH);
+        ctx.lineTo(x2d - treeH * 0.4, base2d);
+        ctx.lineTo(x2d + treeH * 0.4, base2d);
+        ctx.closePath();
+        ctx.fill();
+      });
+
+      time.current += 1.2; // Daylight feels faster/brighter
+      rafRef.current = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(rafRef.current);
+  }, []);
+
+  return (
+    <div className="relative h-full w-full rounded-sm overflow-hidden border border-white/[0.07]" style={{ height: '160px' }}>
+      {/* Cinematic 3D Environment */}
+      <canvas ref={canvasRef} className="w-full h-full block" style={{ filter: 'blur(0.3px)' }} />
+
+      {/* Viewfinder HUD Overlays */}
+      <div className="absolute inset-0 pointer-events-none z-10">
+        <span className="absolute top-2 left-3 font-mono text-[7px] tracking-[0.25em] text-white/40 uppercase select-none">
+          Frame Metadata
+        </span>
+        <span className="absolute top-2 right-3 font-mono text-[7px] tracking-[0.2em] text-white/40 uppercase select-none">
+          RAW / 24FPS / 8K
+        </span>
+
+        {/* Viewfinder brackets */}
+        <div className="absolute inset-4">
+          <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-white/40" />
+          <div className="absolute top-0 right-0 w-4 h-4 border-t border-r border-white/40" />
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b border-l border-white/40" />
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b border-r border-white/40" />
+        </div>
+
+        {/* Crosshair */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center opacity-40">
+          <div className="w-full h-[0.5px] bg-white" />
+          <div className="absolute h-full w-[0.5px] bg-white" />
+        </div>
+
+        {/* Scanning line */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/[0.08] to-transparent h-6 w-full opacity-60"
+          style={{ animation: 'scan 4s linear infinite' }} />
+
+        {/* REC Indicator */}
+        <div className="absolute bottom-3 left-3 flex items-center gap-2">
+          <div className="w-1.5 h-1.5 rounded-full bg-red-600 animate-pulse shadow-[0_0_8px_rgba(220,38,38,0.5)]" />
+          <span className="font-mono text-[8px] text-white/70 tracking-widest uppercase">REC</span>
+        </div>
+
+        {/* Tech Data */}
+        <div className="absolute bottom-3 right-3 text-right">
+          <div className="font-mono text-[6px] text-white/50 uppercase tracking-widest leading-relaxed">ISO 800 | 5600K</div>
+          <div className="font-mono text-[6px] text-white/50 uppercase tracking-widest leading-relaxed">F2.8 | 1/48 SEC</div>
+        </div>
+      </div>
+
+      <style>{`
+        @keyframes scan {
+          from { transform: translateY(-100%); }
+          to { transform: translateY(400%); }
         }
       `}</style>
     </div>
@@ -522,6 +775,15 @@ const ACHIEVEMENTS = [
   },
 ];
 
+// Carousel images — swap src paths as you add real photos
+const CAROUSEL_IMAGES = [
+  { src: '/content/glimpse-image.webp', alt: 'Keerthan at work' },
+  { src: '/content/glimpse-image.webp', alt: 'On set — direction' },
+  { src: '/content/glimpse-image.webp', alt: 'Edit bay' },
+  { src: '/content/glimpse-image.webp', alt: 'Colour grading' },
+];
+
+
 const GlimpseSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
   const cardWrapRef = useRef<HTMLDivElement>(null);
@@ -530,6 +792,58 @@ const GlimpseSection: React.FC = () => {
   const orb1Ref = useRef<HTMLDivElement>(null);
   const orb2Ref = useRef<HTMLDivElement>(null);
   const rightColRef = useRef<HTMLDivElement>(null);
+
+  // ── Carousel state ────────────────────────────────────────────────────────
+  const [activeSlide, setActiveSlide] = useState(0);
+  const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const isHovering = useRef(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const goTo = useCallback((next: number) => {
+    const total = CAROUSEL_IMAGES.length;
+    const from = activeSlide;
+    const to = (next + total) % total;
+    if (from === to) return;
+
+    const fromEl = slideRefs.current[from];
+    const toEl = slideRefs.current[to];
+    if (!fromEl || !toEl) { setActiveSlide(to); return; }
+
+    gsap.set(toEl, { opacity: 0, zIndex: 2 });
+    gsap.set(fromEl, { zIndex: 1 });
+    gsap.to(toEl, { opacity: 1, duration: 0.6, ease: 'power2.inOut' });
+    gsap.to(fromEl, {
+      opacity: 0, duration: 0.6, ease: 'power2.inOut', onComplete: () => {
+        gsap.set(fromEl, { zIndex: 0 });
+      }
+    });
+    setActiveSlide(to);
+  }, [activeSlide]);
+
+  // Auto-advance
+  useEffect(() => {
+    const start = () => {
+      intervalRef.current = setInterval(() => {
+        if (!isHovering.current) {
+          setActiveSlide(prev => {
+            const next = (prev + 1) % CAROUSEL_IMAGES.length;
+            const fromEl = slideRefs.current[prev];
+            const toEl = slideRefs.current[next];
+            if (fromEl && toEl) {
+              gsap.set(toEl, { opacity: 0, zIndex: 2 });
+              gsap.set(fromEl, { zIndex: 1 });
+              gsap.to(toEl, { opacity: 1, duration: 0.6, ease: 'power2.inOut' });
+              gsap.to(fromEl, { opacity: 0, duration: 0.6, ease: 'power2.inOut', onComplete: () => gsap.set(fromEl, { zIndex: 0 }) });
+            }
+            return next;
+          });
+        }
+      }, 3500);
+    };
+    start();
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
+
 
   useGSAP(() => {
     // ── 1. Image card: clip-path wipe-up reveal ──────────────────────────
@@ -606,6 +920,7 @@ const GlimpseSection: React.FC = () => {
 
   // ── Mouse-move 3D tilt on image card ────────────────────────────────────
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    isHovering.current = true;
     const el = cardWrapRef.current;
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -622,6 +937,7 @@ const GlimpseSection: React.FC = () => {
     }
   };
   const handleMouseLeave = () => {
+    isHovering.current = false;
     const el = cardWrapRef.current;
     if (!el) return;
     gsap.to(el, { rotateY: 0, rotateX: 0, scale: 1, duration: 0.8, ease: 'elastic.out(1,0.4)', transformPerspective: 900 });
@@ -667,18 +983,27 @@ const GlimpseSection: React.FC = () => {
             aria-hidden="true"
           />
 
-          {/* Parallax inner image layer */}
+          {/* Parallax inner image layer — carousel slides ──────────── */}
           <div ref={imgInnerRef} className="absolute inset-0 scale-[1.2]"
             style={{ background: 'linear-gradient(135deg, #0a0a14 0%, #1152d4 40%, #00c896 100%)' }}
           >
-            <img
-              src="/content/glimpse-image.webp"
-              alt="Keerthan at work"
-              className="w-full h-full object-cover"
-              onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-            />
+            {CAROUSEL_IMAGES.map((img, i) => (
+              <div
+                key={i}
+                ref={el => { slideRefs.current[i] = el; }}
+                className="absolute inset-0"
+                style={{ opacity: i === 0 ? 1 : 0, zIndex: 0 }}
+              >
+                <img
+                  src={img.src}
+                  alt={img.alt}
+                  className="w-full h-full object-cover"
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                />
+              </div>
+            ))}
             {/* Film grain */}
-            <div className="absolute inset-0 opacity-[0.12]" aria-hidden="true"
+            <div className="absolute inset-0 opacity-[0.12] z-10" aria-hidden="true"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
                 backgroundSize: '180px',
@@ -695,10 +1020,51 @@ const GlimpseSection: React.FC = () => {
           {/* Vignette */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 z-10 pointer-events-none" />
 
-          {/* Name tag at bottom */}
+          {/* Name tag + carousel controls at bottom */}
           <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
-            <div className="font-black text-lg uppercase tracking-tight text-white">Keerthan</div>
-            <div className="font-mono text-[9px] tracking-[0.3em] text-white/40 uppercase mt-0.5">Professional Video Editor</div>
+            <div className="flex items-end justify-between">
+              <div>
+                <div className="font-black text-lg uppercase tracking-tight text-white">Keerthan</div>
+                <div className="font-mono text-[9px] tracking-[0.3em] text-white/40 uppercase mt-0.5">Professional Video Editor</div>
+              </div>
+              {/* Prev / Next arrows */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => goTo(activeSlide - 1)}
+                  className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors duration-200"
+                  aria-label="Previous image"
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="white" strokeWidth="1.5">
+                    <polyline points="5,1 2,4 5,7" />
+                  </svg>
+                </button>
+                <button
+                  onClick={() => goTo(activeSlide + 1)}
+                  className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors duration-200"
+                  aria-label="Next image"
+                >
+                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="white" strokeWidth="1.5">
+                    <polyline points="3,1 6,4 3,7" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+            {/* Dot indicators */}
+            <div className="flex gap-1.5 mt-3">
+              {CAROUSEL_IMAGES.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => goTo(i)}
+                  className="transition-all duration-300 rounded-full"
+                  style={{
+                    width: i === activeSlide ? '16px' : '5px',
+                    height: '5px',
+                    background: i === activeSlide ? '#fff' : 'rgba(255,255,255,0.25)',
+                  }}
+                  aria-label={`Go to image ${i + 1}`}
+                />
+              ))}
+            </div>
           </div>
         </div>
 
@@ -753,6 +1119,234 @@ const GlimpseSection: React.FC = () => {
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
+// 3D Roll Text Carousel — Sound / Colour Grading / Filmography
+// ─────────────────────────────────────────────────────────────────────────────
+
+const WF_PANELS = [
+  {
+    ghost: 'SOUND',
+    heading: ['Sound', 'Shapes'],
+    accent: 'Story',
+    accentColor: '#1152d4',
+    body: 'Every cut is intentional. Every beat synced. The rhythm of the edit breathes life into footage, transforming it into an emotional journey the audience feels in their bones.',
+    stats: [['48kHz', 'Sample Rate'], ['24-bit', 'Depth'], ['5.1', 'Mix Output']],
+    right: {
+      timeIn: '00:00:00:00', timeOut: '00:04:00:00',
+      status: 'REC LIVE', statusColor: '#4f8ef7',
+      trackColor: 'rgba(74,108,247,',
+    },
+  },
+  {
+    ghost: 'COLOUR',
+    heading: ['Colour', 'Tells'],
+    accent: 'Emotion',
+    accentColor: '#00c896',
+    body: 'Every grade is a conversation with mood. From Bollywood warm tones to high-contrast OTT looks — colour transforms raw footage into a cinematic statement.',
+    stats: [['LUT', 'Custom Built'], ['HDR', 'Grade Ready'], ['DCI-P3', 'Colour Space']],
+    right: {
+      timeIn: '00:01:12:04', timeOut: '00:05:30:18',
+      status: 'GRADING', statusColor: '#00c896',
+      trackColor: 'rgba(0,200,150,',
+    },
+  },
+  {
+    ghost: 'FILM',
+    heading: ['Frame', 'Captures'],
+    accent: 'Truth',
+    accentColor: '#f7693e',
+    body: 'Cinematography is the eye of a story. Understanding light, movement, and composition allows every edit to honour the original vision — frame by deliberate frame.',
+    stats: [['24FPS', 'Cinematic'], ['4K', 'Resolution'], ['RAW', 'Format']],
+    right: {
+      timeIn: '00:02:44:10', timeOut: '00:08:15:00',
+      status: 'FILMING', statusColor: '#f7693e',
+      trackColor: 'rgba(247,105,62,',
+    },
+  },
+] as const;
+
+const WaveformTextCarousel: React.FC<{ onActiveChange?: (idx: number) => void }> = ({ onActiveChange }) => {
+  const [active, setActive] = useState(0);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const isAnimating = useRef(false);
+
+  // Individual text-slot refs
+  const ghostRef = useRef<HTMLDivElement>(null);
+  const h2l1Ref = useRef<HTMLSpanElement>(null);
+  const h2l2Ref = useRef<HTMLSpanElement>(null);
+  const accentRef = useRef<HTMLSpanElement>(null);
+  const bodyRef = useRef<HTMLParagraphElement>(null);
+  const svRefs = useRef<(HTMLDivElement | null)[]>([]); // stat values  ×3
+  const slRefs = useRef<(HTMLDivElement | null)[]>([]); // stat labels  ×3
+
+  // Helper: roll one element out, swap text, roll back in
+  const rollSlot = (
+    el: HTMLElement | null,
+    next: string,
+    delay: number,
+    style?: Partial<CSSStyleDeclaration>,
+  ) => {
+    if (!el) return;
+    gsap.to(el, {
+      rotateX: -80, opacity: 0, duration: 0.22, ease: 'power2.in', delay,
+      onComplete: () => {
+        el.textContent = next;
+        if (style) Object.assign(el.style, style);
+        gsap.fromTo(el,
+          { rotateX: 80, opacity: 0 },
+          { rotateX: 0, opacity: 1, duration: 0.28, ease: 'power3.out' }
+        );
+      },
+    });
+  };
+
+  const runTransition = useCallback((toIdx: number) => {
+    if (isAnimating.current) return;
+    isAnimating.current = true;
+    const p = WF_PANELS[toIdx];
+
+    // Staggered slot rolls — each element rolls independently in place
+    rollSlot(ghostRef.current, p.ghost, 0.00);
+    rollSlot(h2l1Ref.current, p.heading[0], 0.06);
+    rollSlot(h2l2Ref.current, p.heading[1], 0.12);
+    rollSlot(accentRef.current, p.accent, 0.18, { color: p.accentColor });
+    rollSlot(bodyRef.current, p.body, 0.26);
+    rollSlot(svRefs.current[0], p.stats[0][0], 0.34);
+    rollSlot(slRefs.current[0], p.stats[0][1], 0.36);
+    rollSlot(svRefs.current[1], p.stats[1][0], 0.40);
+    rollSlot(slRefs.current[1], p.stats[1][1], 0.42);
+    rollSlot(svRefs.current[2], p.stats[2][0], 0.46);
+    rollSlot(slRefs.current[2], p.stats[2][1], 0.48);
+
+    setActive(toIdx);
+    onActiveChange?.(toIdx);
+    // unlock after longest animation finishes (0.48 delay + 0.28 in = ~0.8s)
+    setTimeout(() => { isAnimating.current = false; }, 850);
+  }, [onActiveChange]);
+
+  const goTo = useCallback((next: number) => {
+    const to = (next + WF_PANELS.length) % WF_PANELS.length;
+    if (to === active) return;
+    runTransition(to);
+  }, [active, runTransition]);
+
+  // Auto-advance every 5s
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      setActive(prev => {
+        const next = (prev + 1) % WF_PANELS.length;
+        runTransition(next);
+        return next;   // setActive called inside runTransition too; harmless
+      });
+    }, 5000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, [runTransition]);
+
+  const p0 = WF_PANELS[0]; // initial render values
+
+  return (
+    <div className="wf-left relative" style={{ perspective: '600px' }}>
+
+      {/* Ghost word — fixed position, text rolls in-place */}
+      <div
+        ref={ghostRef}
+        className="font-black text-[10vw] sm:text-[13vw] md:text-[8vw] leading-none text-white/[0.04] select-none uppercase tracking-tighter mb-2 -ml-1"
+        style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+        aria-hidden="true"
+      >
+        {p0.ghost}
+      </div>
+
+      {/* Heading — each word/line is its own slot */}
+      <h2
+        className="font-black text-[clamp(2rem,5.5vw,5.5rem)] leading-[0.88] uppercase tracking-tight -mt-4 mb-6 sm:mb-8"
+        style={{ transformStyle: 'preserve-3d' }}
+      >
+        <span
+          ref={h2l1Ref}
+          className="inline-block"
+          style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+        >
+          {p0.heading[0]}
+        </span>
+        <br />
+        <span
+          ref={h2l2Ref}
+          className="inline-block"
+          style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+        >
+          {p0.heading[1]}
+        </span>
+        {' '}
+        <span
+          ref={accentRef}
+          className="font-serif italic font-normal inline-block"
+          style={{ color: p0.accentColor, WebkitTextStroke: '0px', transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+        >
+          {p0.accent}
+        </span>
+      </h2>
+
+      {/* Body — single paragraph slot */}
+      <p
+        ref={bodyRef}
+        className="text-[13px] sm:text-[14px] md:text-[15px] text-white/45 leading-[1.85] max-w-[38ch]"
+        style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+      >
+        {p0.body}
+      </p>
+
+      {/* Stats — each val and label is its own slot */}
+      <div className="mt-8 sm:mt-10 flex gap-6 sm:gap-10 pt-6 sm:pt-8">
+        {p0.stats.map(([val, lbl], i) => (
+          <div key={i}>
+            <div
+              ref={el => { svRefs.current[i] = el; }}
+              className="font-black text-xl sm:text-2xl text-white tracking-tight"
+              style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+            >
+              {val}
+            </div>
+            <div
+              ref={el => { slRefs.current[i] = el; }}
+              className="font-mono text-[8px] tracking-[0.25em] uppercase text-white/25 mt-1"
+              style={{ transformStyle: 'preserve-3d', transformOrigin: '50% 50%' }}
+            >
+              {lbl}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Indicators */}
+      <div className="flex items-center gap-3 mt-8">
+        {WF_PANELS.map((panel, i) => (
+          <button
+            key={i}
+            onClick={() => goTo(i)}
+            className="group flex items-center gap-2 transition-all duration-300"
+            aria-label={`Panel ${i + 1}`}
+          >
+            <span
+              className="font-mono text-[9px] tracking-[0.2em] transition-colors duration-300"
+              style={{ color: i === active ? '#fff' : 'rgba(255,255,255,0.2)' }}
+            >
+              0{i + 1}
+            </span>
+            <span
+              className="block h-px transition-all duration-300 rounded-full"
+              style={{
+                width: i === active ? '24px' : '10px',
+                background: i === active ? panel.accentColor : 'rgba(255,255,255,0.15)',
+              }}
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Main Component
 // ─────────────────────────────────────────────────────────────────────────────
 
@@ -760,6 +1354,7 @@ const HorizontalScrollSection: React.FC = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const clipsRef = useRef<HTMLDivElement>(null);
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
+  const [wfActive, setWfActive] = useState(0);
   const { trigger } = useHaptics();
 
   // ── Drag-to-scroll ───────────────────────────────────────────────────────
@@ -848,58 +1443,57 @@ const HorizontalScrollSection: React.FC = () => {
       <div
         className="relative px-4 sm:px-8 md:px-20 pt-8 sm:pt-10 pb-20 sm:pb-24 md:pt-14 md:pb-32"
       >
-        {/* top section label */}
-
         <div className="mt-10 sm:mt-16 grid grid-cols-1 md:grid-cols-2 gap-10 sm:gap-16 md:gap-24 items-center">
-          {/* left */}
-          <div className="wf-left">
-            {/* oversized ghost */}
-            <div
-              className="font-black text-[10vw] sm:text-[13vw] md:text-[8vw] leading-none text-white/[0.04] select-none uppercase tracking-tighter mb-2 -ml-1"
-              aria-hidden="true"
-            >
-              SOUND
-            </div>
-            <h2 className="font-black text-[clamp(2rem,5.5vw,5.5rem)] leading-[0.88] uppercase tracking-tight -mt-4 mb-6 sm:mb-8">
-              Sound<br />
-              Shapes{' '}
-              <span className="font-serif italic font-normal" style={{ color: '#1152d4', WebkitTextStroke: '0px' }}>
-                Story
-              </span>
-            </h2>
-            <p className="text-[13px] sm:text-[14px] md:text-[15px] text-white/45 leading-[1.85] max-w-[38ch]">
-              Every cut is intentional. Every beat synced. The rhythm of the edit breathes life into
-              footage, transforming it into an emotional journey the audience feels in their bones.
-            </p>
-
-            {/* stat row */}
-            <div className="mt-8 sm:mt-10 flex gap-6 sm:gap-10 pt-6 sm:pt-8">
-              {[['48kHz', 'Sample Rate'], ['24-bit', 'Depth'], ['5.1', 'Mix Output']].map(([val, lbl]) => (
-                <div key={lbl}>
-                  <div className="font-black text-xl sm:text-2xl text-white tracking-tight">{val}</div>
-                  <div className="font-mono text-[8px] tracking-[0.25em] uppercase text-white/25 mt-1">{lbl}</div>
-                </div>
-              ))}
-            </div>
-          </div>
+          {/* left — 3D roll carousel */}
+          <WaveformTextCarousel onActiveChange={setWfActive} />
 
           {/* right */}
           <div className="wf-right flex flex-col gap-4">
-            <WaveformCanvas />
-            <div className="flex items-center justify-between px-1">
-              <span className="font-mono text-[8px] tracking-[0.2em] text-white/20">00:00:00:00</span>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" aria-hidden="true" />
-                <span className="font-mono text-[8px] tracking-[0.2em] text-blue-500">REC LIVE</span>
+            <div className="relative h-[160px]">
+              <div className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${wfActive === 0 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                {wfActive === 0 && <WaveformCanvas />}
               </div>
-              <span className="font-mono text-[8px] tracking-[0.2em] text-white/20">00:04:00:00</span>
+              <div className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${wfActive === 1 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                {wfActive === 1 && <ColorPaletteCanvas />}
+              </div>
+              <div className={`absolute inset-0 transition-opacity duration-700 ease-in-out ${wfActive === 2 ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+                {wfActive === 2 && <FilmingCanvas />}
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between px-1" style={{ transition: 'color 0.4s' }}>
+              <span className="font-mono text-[8px] tracking-[0.2em] text-white/20">
+                {WF_PANELS[wfActive].right.timeIn}
+              </span>
+              <div className="flex items-center gap-2">
+                <div
+                  className="w-2 h-2 rounded-full animate-pulse"
+                  style={{ background: WF_PANELS[wfActive].right.statusColor, transition: 'background 0.4s' }}
+                  aria-hidden="true"
+                />
+                <span
+                  className="font-mono text-[8px] tracking-[0.2em]"
+                  style={{ color: WF_PANELS[wfActive].right.statusColor, transition: 'color 0.4s' }}
+                >
+                  {WF_PANELS[wfActive].right.status}
+                </span>
+              </div>
+              <span className="font-mono text-[8px] tracking-[0.2em] text-white/20">
+                {WF_PANELS[wfActive].right.timeOut}
+              </span>
             </div>
             {/* secondary mini tracks */}
             <div className="flex flex-col gap-[3px] opacity-30" aria-hidden="true">
               {[0.6, 0.4, 0.25].map((h, i) => (
                 <div key={i} className="h-2 rounded-sm overflow-hidden bg-white/[0.05]">
-                  <div className="h-full rounded-sm opacity-60"
-                    style={{ width: `${55 + i * 15}%`, background: `rgba(74,108,247,${h})` }} />
+                  <div
+                    className="h-full rounded-sm opacity-60"
+                    style={{
+                      width: `${55 + i * 15}%`,
+                      background: `${WF_PANELS[wfActive].right.trackColor}${h})`,
+                      transition: 'background 0.5s',
+                    }}
+                  />
                 </div>
               ))}
             </div>
