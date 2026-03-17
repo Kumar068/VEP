@@ -775,20 +775,21 @@ const ACHIEVEMENTS = [
   },
 ];
 
-// Carousel images — swap src paths as you add real photos
+
+
+
+// Carousel images
 const CAROUSEL_IMAGES = [
-  { src: '/content/glimpse-image.webp', alt: 'Keerthan at work' },
+  { src: '/content/glimpse-image.png', alt: 'Keerthan at work' },
   { src: '/content/glimpse-image.webp', alt: 'On set — direction' },
   { src: '/content/glimpse-image.webp', alt: 'Edit bay' },
   { src: '/content/glimpse-image.webp', alt: 'Colour grading' },
 ];
 
-
 const GlimpseSection: React.FC = () => {
   const sectionRef = useRef<HTMLDivElement>(null);
-  const cardWrapRef = useRef<HTMLDivElement>(null);
+  const imgWrapRef = useRef<HTMLDivElement>(null);
   const imgInnerRef = useRef<HTMLDivElement>(null);
-  const glowRef = useRef<HTMLDivElement>(null);
   const orb1Ref = useRef<HTMLDivElement>(null);
   const orb2Ref = useRef<HTMLDivElement>(null);
   const rightColRef = useRef<HTMLDivElement>(null);
@@ -844,71 +845,76 @@ const GlimpseSection: React.FC = () => {
     return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
   }, []);
 
-
   useGSAP(() => {
-    // ── 1. Image card: clip-path wipe-up reveal ──────────────────────────
-    if (cardWrapRef.current) {
-      gsap.fromTo(cardWrapRef.current,
-        { clipPath: 'inset(100% 0% 0% 0%)', opacity: 0 },
+    // 1. Reveal clipping mask for image container
+    if (imgWrapRef.current) {
+      gsap.fromTo(imgWrapRef.current,
+        { clipPath: 'inset(100% 0% 0% 0%)' },
         {
-          clipPath: 'inset(0% 0% 0% 0%)', opacity: 1,
-          ease: 'power4.out', duration: 1.4,
-          scrollTrigger: { trigger: sectionRef.current, start: 'top 78%', toggleActions: 'play none none reverse' },
+          clipPath: 'inset(0% 0% 0% 0%)',
+          ease: 'power4.inOut',
+          duration: 1.6,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 75%' }
         }
       );
     }
 
-    // ── 2. Inner image: scroll scrub parallax (moves slower than page) ───
+    // 2. Parallax effect on the inner image container
     if (imgInnerRef.current) {
-      gsap.fromTo(imgInnerRef.current, { y: 80 }, {
-        y: -60, ease: 'none',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 1.8 },
-      });
+      gsap.fromTo(imgInnerRef.current,
+        { y: '-15%', scale: 1.1 },
+        {
+          y: '15%', scale: 1.05,
+          ease: 'none',
+          scrollTrigger: {
+            trigger: sectionRef.current,
+            start: 'top bottom',
+            end: 'bottom top',
+            scrub: true,
+          }
+        }
+      );
     }
 
-    // ── 3. Floating background orbs at different scroll speeds ───────────
+    // 3. Orbs Parallax
     if (orb1Ref.current) {
-      gsap.fromTo(orb1Ref.current, { y: 0, x: 0 }, {
-        y: -120, x: 30, ease: 'none',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 2 },
-      });
+      gsap.fromTo(orb1Ref.current, { y: 0, x: 0 }, { y: -120, x: 30, ease: 'none', scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 2 } });
     }
     if (orb2Ref.current) {
-      gsap.fromTo(orb2Ref.current, { y: 0, x: 0 }, {
-        y: 80, x: -40, ease: 'none',
-        scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 3 },
-      });
+      gsap.fromTo(orb2Ref.current, { y: 0, x: 0 }, { y: 80, x: -40, ease: 'none', scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 3 } });
     }
 
-    // ── 4. Right column: slides in from right on scroll ──────────────────
+    // 4. Right column text slide up reveal
     if (rightColRef.current) {
-      gsap.fromTo(rightColRef.current, { x: 60, opacity: 0 }, {
-        x: 0, opacity: 1, ease: 'power3.out', duration: 1,
-        scrollTrigger: { trigger: sectionRef.current, start: 'top 72%', toggleActions: 'play none none reverse' },
-      });
+      gsap.fromTo(rightColRef.current, 
+        { x: 50, opacity: 0 }, 
+        {
+          x: 0, opacity: 1, ease: 'power3.out', duration: 1,
+          scrollTrigger: { trigger: sectionRef.current, start: 'top 72%', toggleActions: 'play none none reverse' }
+        }
+      );
     }
 
-    // ── 5. Achievement cards: stagger + slight parallax offset ───────────
+    // 5. Achievements Stagger
     const cards = sectionRef.current?.querySelectorAll<HTMLElement>('.glimpse-card');
     if (cards?.length) {
       cards.forEach((card, i) => {
         gsap.fromTo(card,
-          { x: 50, opacity: 0 },
+          { x: 40, opacity: 0 },
           {
-            x: 0, opacity: 1, ease: 'power3.out', duration: 0.7, delay: i * 0.08,
-            scrollTrigger: { trigger: sectionRef.current, start: 'top 68%', toggleActions: 'play none none reverse' },
+            x: 0, opacity: 1, ease: 'power3.out', duration: 0.7, delay: i * 0.1,
+            scrollTrigger: { trigger: sectionRef.current, start: 'top 68%', toggleActions: 'play none none reverse' }
           }
         );
-        // each card drifts up slightly at different parallax rates
         gsap.to(card, {
-          y: -(i + 1) * 12,
+          y: -(i + 1) * 10,
           ease: 'none',
-          scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 1 + i * 0.3 },
+          scrollTrigger: { trigger: sectionRef.current, start: 'top bottom', end: 'bottom top', scrub: 1 + i * 0.2 },
         });
       });
     }
 
-    // ── 6. Heading: letter-by-letter skew reveal ─────────────────────────
+    // 6. Heading letter-by-letter skew reveal
     const heading = sectionRef.current?.querySelector<HTMLElement>('.glimpse-heading');
     if (heading) {
       gsap.fromTo(heading, { y: 50, skewY: 4, opacity: 0 }, {
@@ -918,44 +924,17 @@ const GlimpseSection: React.FC = () => {
     }
   }, { scope: sectionRef });
 
-  // ── Mouse-move 3D tilt on image card ────────────────────────────────────
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    isHovering.current = true;
-    const el = cardWrapRef.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;  // -0.5 → 0.5
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    gsap.to(el, { rotateY: x * 14, rotateX: -y * 10, scale: 1.03, duration: 0.5, ease: 'power2.out', transformPerspective: 900 });
-    // glow follows cursor
-    if (glowRef.current) {
-      gsap.to(glowRef.current, {
-        x: (e.clientX - rect.left) - rect.width / 2,
-        y: (e.clientY - rect.top) - rect.height / 2,
-        opacity: 1, duration: 0.4, ease: 'power2.out',
-      });
-    }
-  };
-  const handleMouseLeave = () => {
-    isHovering.current = false;
-    const el = cardWrapRef.current;
-    if (!el) return;
-    gsap.to(el, { rotateY: 0, rotateX: 0, scale: 1, duration: 0.8, ease: 'elastic.out(1,0.4)', transformPerspective: 900 });
-    if (glowRef.current) gsap.to(glowRef.current, { opacity: 0, duration: 0.4 });
-  };
-
   return (
     <div
       ref={sectionRef}
       id="work"
       className="relative px-4 sm:px-8 md:px-20 pt-20 sm:pt-24 pb-8 sm:pb-10 md:pt-36 md:pb-12 overflow-hidden"
       aria-label="A glimpse — achievements"
-      style={{ perspective: '1200px' }}
     >
       {/* ── Floating background orbs ──────────────────────────────────── */}
-      <div ref={orb1Ref} className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full pointer-events-none" aria-hidden="true"
+      <div ref={orb1Ref} className="absolute top-1/4 left-1/4 w-72 h-72 rounded-full pointer-events-none z-0" aria-hidden="true"
         style={{ background: 'radial-gradient(circle, rgba(17,82,212,0.15) 0%, transparent 70%)', filter: 'blur(40px)' }} />
-      <div ref={orb2Ref} className="absolute bottom-1/4 right-1/3 w-96 h-96 rounded-full pointer-events-none" aria-hidden="true"
+      <div ref={orb2Ref} className="absolute bottom-1/4 right-1/3 w-96 h-96 rounded-full pointer-events-none z-0" aria-hidden="true"
         style={{ background: 'radial-gradient(circle, rgba(0,200,150,0.10) 0%, transparent 70%)', filter: 'blur(60px)' }} />
 
       {/* Ghost heading */}
@@ -963,107 +942,98 @@ const GlimpseSection: React.FC = () => {
         GLIMPSE
       </div>
 
-      <div className="relative grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 lg:gap-24 items-center">
+      <div className="relative z-10 grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 lg:gap-24 items-center">
 
-        {/* ── Left: image with 3D tilt ──────────────────────────────── */}
-        <div
-          ref={cardWrapRef}
-          className="relative w-full sm:w-2/3 mx-auto sm:mx-10 my-6 sm:my-10 lg:mx-0 aspect-[3/4] rounded-sm overflow-hidden cursor-none"
-          style={{ boxShadow: '0 40px 80px rgba(0,0,0,0.6)', transformStyle: 'preserve-3d' }}
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
-        >
-          {/* Cursor-following glow */}
-          <div ref={glowRef} className="absolute w-40 h-40 rounded-full pointer-events-none opacity-0 z-20"
-            style={{
-              background: 'radial-gradient(circle, rgba(17,82,212,0.6) 0%, transparent 70%)',
-              transform: 'translate(-50%,-50%)',
-              filter: 'blur(20px)',
-            }}
-            aria-hidden="true"
-          />
-
-          {/* Parallax inner image layer — carousel slides ──────────── */}
-          <div ref={imgInnerRef} className="absolute inset-0 scale-[1.2]"
-            style={{ background: 'linear-gradient(135deg, #0a0a14 0%, #1152d4 40%, #00c896 100%)' }}
+        {/* ── Left: Modern Parallax Image ──────────────────────────────── */}
+        <div className="relative w-full sm:w-5/6 lg:w-[90%] mx-auto lg:mx-0"
+             onMouseEnter={() => { isHovering.current = true; }}
+             onMouseLeave={() => { isHovering.current = false; }}>
+          <div
+            ref={imgWrapRef}
+            className="relative w-full aspect-[4/5] sm:aspect-[3/4] overflow-hidden rounded-md border border-white/10"
+            style={{ boxShadow: '0 30px 60px rgba(0,0,0,0.5)' }}
           >
-            {CAROUSEL_IMAGES.map((img, i) => (
-              <div
-                key={i}
-                ref={el => { slideRefs.current[i] = el; }}
-                className="absolute inset-0"
-                style={{ opacity: i === 0 ? 1 : 0, zIndex: 0 }}
-              >
-                <img
-                  src={img.src}
-                  alt={img.alt}
-                  className="w-full h-full object-cover"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                />
-              </div>
-            ))}
+            {/* Inner parallax container */}
+            <div ref={imgInnerRef} className="absolute inset-0 w-full h-[130%] -top-[15%] rounded-md overflow-hidden bg-[#050508]">
+               {CAROUSEL_IMAGES.map((img, i) => (
+                <div
+                  key={i}
+                  ref={el => { slideRefs.current[i] = el; }}
+                  className="absolute inset-0 w-full h-full"
+                  style={{ opacity: i === 0 ? 1 : 0, zIndex: 0 }}
+                >
+                  <img
+                    src={img.src}
+                    alt={img.alt}
+                    className="w-full h-full object-cover object-center scale-105"
+                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
+                  />
+                </div>
+              ))}
+            </div>
+            
+            {/* Cinematic color overlay to match theme */}
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0a0d14] via-transparent to-transparent opacity-80" />
+            <div className="absolute inset-0 bg-[#1152d4]/10 mix-blend-overlay pointer-events-none" />
+
+            {/* Corner brackets */}
+            <div className="absolute top-6 left-6 w-8 h-8 border-l-[1.5px] border-t-[1.5px] border-white/60 z-10" aria-hidden="true" />
+            <div className="absolute bottom-6 right-6 w-8 h-8 border-r-[1.5px] border-b-[1.5px] border-white/60 z-10" aria-hidden="true" />
+
             {/* Film grain */}
-            <div className="absolute inset-0 opacity-[0.12] z-10" aria-hidden="true"
+            <div className="absolute inset-0 opacity-[0.08] z-10 mix-blend-overlay pointer-events-none" aria-hidden="true"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")`,
-                backgroundSize: '180px',
+                backgroundSize: '150px',
               }}
             />
-          </div>
 
-          {/* Corner brackets */}
-          <div className="absolute top-4 left-4 w-7 h-7 border-l-2 border-t-2 border-white/50 z-10" aria-hidden="true" />
-          <div className="absolute top-4 right-4 w-7 h-7 border-r-2 border-t-2 border-white/50 z-10" aria-hidden="true" />
-          <div className="absolute bottom-16 left-4 w-7 h-7 border-l-2 border-b-2 border-white/50 z-10" aria-hidden="true" />
-          <div className="absolute bottom-16 right-4 w-7 h-7 border-r-2 border-b-2 border-white/50 z-10" aria-hidden="true" />
-
-          {/* Vignette */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-black/20 z-10 pointer-events-none" />
-
-          {/* Name tag + carousel controls at bottom */}
-          <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
-            <div className="flex items-end justify-between">
-              <div>
-                <div className="font-black text-lg uppercase tracking-tight text-white">Keerthan</div>
-                <div className="font-mono text-[9px] tracking-[0.3em] text-white/40 uppercase mt-0.5">Professional Video Editor</div>
+            {/* Detail tag and carousel controls */}
+            <div className="absolute bottom-0 left-0 right-0 p-6 sm:p-8 z-20 flex flex-col justify-end">
+              <div className="flex items-end justify-between w-full">
+                <div>
+                  <div className="font-black text-xl md:text-2xl uppercase tracking-tight text-white/90">Keerthan</div>
+                  <div className="font-mono text-[10px] md:text-[11px] tracking-[0.3em] text-[#4f8ef7] uppercase mt-1">Professional Video Editor</div>
+                </div>
+                {/* Prev / Next arrows */}
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => goTo(activeSlide - 1)}
+                    className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors duration-200 backdrop-blur-sm"
+                    aria-label="Previous image"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 8 8" fill="none" stroke="white" strokeWidth="1.5">
+                      <polyline points="5,1 2,4 5,7" />
+                    </svg>
+                  </button>
+                  <button
+                    onClick={() => goTo(activeSlide + 1)}
+                    className="w-8 h-8 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors duration-200 backdrop-blur-sm"
+                    aria-label="Next image"
+                  >
+                    <svg width="10" height="10" viewBox="0 0 8 8" fill="none" stroke="white" strokeWidth="1.5">
+                      <polyline points="3,1 6,4 3,7" />
+                    </svg>
+                  </button>
+                </div>
               </div>
-              {/* Prev / Next arrows */}
-              <div className="flex gap-2">
-                <button
-                  onClick={() => goTo(activeSlide - 1)}
-                  className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors duration-200"
-                  aria-label="Previous image"
-                >
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="white" strokeWidth="1.5">
-                    <polyline points="5,1 2,4 5,7" />
-                  </svg>
-                </button>
-                <button
-                  onClick={() => goTo(activeSlide + 1)}
-                  className="w-7 h-7 rounded-full border border-white/20 flex items-center justify-center hover:bg-white/10 transition-colors duration-200"
-                  aria-label="Next image"
-                >
-                  <svg width="8" height="8" viewBox="0 0 8 8" fill="none" stroke="white" strokeWidth="1.5">
-                    <polyline points="3,1 6,4 3,7" />
-                  </svg>
-                </button>
+              
+              {/* Dot indicators */}
+              <div className="flex gap-1.5 mt-4">
+                {CAROUSEL_IMAGES.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => goTo(i)}
+                    className="transition-all duration-300 rounded-full"
+                    style={{
+                      width: i === activeSlide ? '18px' : '6px',
+                      height: '6px',
+                      background: i === activeSlide ? '#fff' : 'rgba(255,255,255,0.3)',
+                    }}
+                    aria-label={`Go to image ${i + 1}`}
+                  />
+                ))}
               </div>
-            </div>
-            {/* Dot indicators */}
-            <div className="flex gap-1.5 mt-3">
-              {CAROUSEL_IMAGES.map((_, i) => (
-                <button
-                  key={i}
-                  onClick={() => goTo(i)}
-                  className="transition-all duration-300 rounded-full"
-                  style={{
-                    width: i === activeSlide ? '16px' : '5px',
-                    height: '5px',
-                    background: i === activeSlide ? '#fff' : 'rgba(255,255,255,0.25)',
-                  }}
-                  aria-label={`Go to image ${i + 1}`}
-                />
-              ))}
             </div>
           </div>
         </div>

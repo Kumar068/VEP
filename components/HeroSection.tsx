@@ -468,20 +468,20 @@ const HeroSection: React.FC = () => {
           className="absolute top-0 w-full text-center z-20 pt-2 opacity-0 pointer-events-none"
         >
           <div className="max-w-4xl mx-auto px-4">
-            <h2 className="text-2xl sm:text-4xl md:text-7xl font-bold tracking-tight leading-[1.05] mb-6 font-display text-white">
-              <span className="block mb-4 overflow-hidden">
-                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">Crafting</span>{' '}
-                <span className="font-serif italic bg-gradient-to-br from-[#a78bfa] via-[#8b5cf6] to-[#6366f1] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(139,92,246,0.25)]">visual</span>{' '}
-                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">stories</span>
+            <h2 className="text-3xl sm:text-5xl md:text-[5.5rem] font-medium tracking-tighter leading-[1] mb-8 font-display text-white">
+              <span className="block mb-2 md:mb-4 overflow-hidden">
+                <span className="text-white/60">Crafting</span>{' '}
+                <span className="font-serif italic font-light text-white pr-2">visual</span>{' '}
+                <span className="text-white/60">stories</span>
               </span>
-              <span className="block mb-4 overflow-hidden">
-                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">built to</span>{' '}
-                <span className="text-[#a5b4fc] drop-shadow-[0_0_15px_rgba(165,180,252,0.3)]">resonate</span>{' '}
-                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">deeply</span>
+              <span className="block mb-2 md:mb-4 overflow-hidden">
+                <span className="text-white/60">built to</span>{' '}
+                <span className="text-white font-semibold">resonate</span>{' '}
+                <span className="text-white/60">deeply</span>
               </span>
               <span className="block overflow-hidden">
-                <span className="bg-gradient-to-b from-white to-white/60 bg-clip-text text-transparent">with</span>{' '}
-                <span className="bg-gradient-to-br from-[#22d3ee] via-[#0ea5e9] to-[#2563eb] bg-clip-text text-transparent drop-shadow-[0_0_20px_rgba(14,165,233,0.25)]">lasting impact</span>.
+                <span className="text-white/60">with</span>{' '}
+                <span className="font-serif italic font-light text-white pr-2">lasting impact.</span>
               </span>
             </h2>
           </div>

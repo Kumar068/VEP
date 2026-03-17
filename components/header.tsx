@@ -115,7 +115,7 @@ const Header: React.FC = () => {
   return (
     <header
       ref={headerRef}
-      className="fixed top-0 left-0 w-full max-w-[100vw] overflow-hidden z-50 px-4 py-3 sm:px-6 sm:py-5 md:px-8 md:py-6 flex justify-between items-center"
+      className="fixed top-0 left-0 w-full max-w-[100vw] overflow-x-hidden z-50 px-4 py-3 sm:px-6 sm:py-5 md:px-8 md:py-6 flex justify-between items-center"
     >
       {/* BACKGROUND BLUR STRIP */}
       {/* We separate this to keep the text sharp while blurring the background */}

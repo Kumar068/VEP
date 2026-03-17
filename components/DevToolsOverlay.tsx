@@ -27,6 +27,8 @@ const DevToolsOverlay: React.FC = () => {
                 textAlign: 'center',
                 padding: '2rem',
                 userSelect: 'none',
+                overflow: 'hidden',
+                touchAction: 'none'
             }}
         >
             {/* Decorative dot */}
@@ -76,8 +78,22 @@ const DevToolsOverlay: React.FC = () => {
                     margin: '0 0 2.5rem',
                 }}
             >
+                <style>
+                    {`@import url('https://fonts.googleapis.com/css2?family=Great+Vibes&display=swap');`}
+                </style>
                 This work is crafted by{' '}
-                <span style={{ color: '#fff', fontWeight: 700 }}>Kumar</span>.
+                <span style={{
+                    fontFamily: "'Great Vibes', cursive",
+                    color: '#fff',
+                    fontSize: '2em',
+                    fontWeight: 400,
+                    letterSpacing: '1px',
+                    display: 'inline-block',
+                    verticalAlign: 'middle',
+                    transform: 'translateY(-2px)'
+                }}>
+                    <span style={{ fontSize: '1.2em', marginLeft: '-2px', display: 'inline-block', transform: 'translateY(2px)' }}>K</span>uma<span style={{ fontSize: '1.2em', marginLeft: '-2px', display: 'inline-block', transform: 'translateY(6px)' }}>R</span>
+                </span>.
                 <br />
                 Contact the main page for more details.
             </p>

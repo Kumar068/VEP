@@ -15,19 +15,109 @@ const LoadingScreen: React.FC = () => {
     const [visible, setVisible] = useState(true);
     const { trigger } = useHaptics();
 
+    const [progress, setProgress] = useState(0);
+
+    // Track loading progress
     useEffect(() => {
-        let windowLoaded = document.readyState === 'complete';
-        let appReady = false;
-        let hideScheduled = false;
+        let isCancelled = false;
+        
+        // --- 1. Identify trackable assets currently in the DOM ---
+        // We select ALL images and videos available in the DOM at mount time.
+        // Even if some components are "below the fold," since we removed React.lazy,
+        // their DOM nodes (and therefore <img>/<video> tags) exist immediately.
+        const images = Array.from(document.images);
+        const videos = Array.from(document.querySelectorAll('video'));
+        
+        let totalAssets = images.length + videos.length;
+        let loadedAssets = 0;
+        
+        // If there are literally no assets, we just fast-track to 100%.
+        if (totalAssets === 0) {
+            setProgress(100);
+            return;
+        }
 
-        const tryHide = () => {
-            // Only dismiss once BOTH gates are open
-            if (!windowLoaded || !appReady || hideScheduled) return;
-            hideScheduled = true;
+        const updateProgress = () => {
+             if (isCancelled) return;
+             const p = totalAssets > 0 ? Math.floor((loadedAssets / totalAssets) * 100) : 100;
+             setProgress((prev) => Math.min(100, Math.max(prev, p)));
+        };
 
-            if (!overlayRef.current) return;
+        const handleAssetLoad = () => {
+            loadedAssets++;
+            updateProgress();
+        };
 
-            gsap.to(overlayRef.current, {
+        const handleAssetError = () => {
+            // Count it as loaded so we don't block progress forever on one failed asset.
+            loadedAssets++; 
+            updateProgress();
+        };
+
+        // --- 2. Attach listeners to assets ---
+        images.forEach((img) => {
+            if (img.complete) {
+                loadedAssets++;
+            } else {
+                img.addEventListener('load', handleAssetLoad, { once: true });
+                img.addEventListener('error', handleAssetError, { once: true });
+            }
+        });
+
+        videos.forEach((video) => {
+            if (video.readyState >= 3) { // HAVE_FUTURE_DATA or better
+                loadedAssets++;
+            } else {
+                video.addEventListener('canplaythrough', handleAssetLoad, { once: true });
+                video.addEventListener('error', handleAssetError, { once: true });
+            }
+        });
+
+        // Initialize progress with whatever is already loaded right now
+        updateProgress();
+
+        // --- 3. Safety fallback timer ---
+        // In case some assets get stuck or never fire events, we slowly increment
+        // the progress anyway so the user isn't stuck forever.
+        let fallbackProgress = progress;
+        const fallbackInterval = setInterval(() => {
+            fallbackProgress += 1;
+            setProgress(prev => Math.min(Math.max(prev, fallbackProgress), 99)); // Cap fallback at 99% until window.onload
+        }, 150); // Adjust this interval to control the minimum apparent "speed"
+
+        // --- 4. The ultimate fallback: window 'load' event ---
+        // When the browser decides EVERYTHING is loaded, jump straight to 100%.
+        const handleWindowLoad = () => {
+            if (isCancelled) return;
+            loadedAssets = totalAssets; // Force 100% calculation
+            setProgress(100);
+        };
+
+        if (document.readyState === 'complete') {
+            handleWindowLoad();
+        } else {
+            window.addEventListener('load', handleWindowLoad, { once: true });
+        }
+
+        return () => {
+            isCancelled = true;
+            clearInterval(fallbackInterval);
+            window.removeEventListener('load', handleWindowLoad);
+            images.forEach((img) => {
+                img.removeEventListener('load', handleAssetLoad);
+                img.removeEventListener('error', handleAssetError);
+            });
+            videos.forEach((video) => {
+                video.removeEventListener('canplaythrough', handleAssetLoad);
+                video.removeEventListener('error', handleAssetError);
+            });
+        };
+    }, []);
+
+    // Dismiss animation when progress hits 100
+    useEffect(() => {
+        if (progress >= 100 && overlayRef.current) {
+             gsap.to(overlayRef.current, {
                 opacity: 0,
                 duration: 0.8,
                 ease: 'power2.inOut',
@@ -37,40 +127,8 @@ const LoadingScreen: React.FC = () => {
                     setVisible(false);
                 },
             });
-        };
-
-        const onWindowLoad = () => {
-            windowLoaded = true;
-            tryHide();
-        };
-
-        const onAppReady = () => {
-            appReady = true;
-            tryHide();
-        };
-
-        // Gate 1 — window load
-        if (!windowLoaded) {
-            window.addEventListener('load', onWindowLoad, { once: true });
         }
-
-        // Gate 2 — React Suspense resolved (dispatched by AppReadySignal)
-        window.addEventListener('app:ready', onAppReady, { once: true } as EventListenerOptions);
-
-        // Failsafe: on very slow connections give up after 8s so the user
-        // isn't stuck forever. Adjust as needed.
-        const failsafe = setTimeout(() => {
-            windowLoaded = true;
-            appReady = true;
-            tryHide();
-        }, 8000);
-
-        return () => {
-            clearTimeout(failsafe);
-            window.removeEventListener('load', onWindowLoad);
-            window.removeEventListener('app:ready', onAppReady);
-        };
-    }, []);
+    }, [progress, trigger]);
 
     if (!visible) return null;
 
@@ -96,15 +154,13 @@ const LoadingScreen: React.FC = () => {
                     }}
                 />
 
-                {/* Fallback spinner shown when no video */}
-                <div
-                    className="w-12 h-12 rounded-full border-2 border-white/10 border-t-white"
-                    style={{ animation: 'spin 0.9s linear infinite' }}
-                    aria-hidden="true"
-                />
+                {/* Numbered Progress */}
+                <div className="text-4xl md:text-5xl font-semibold text-[#f5f5f7] tracking-tight tabular-nums mt-4">
+                    {progress}%
+                </div>
 
                 {/* Brand wordmark */}
-                <div className="font-black text-[11px] tracking-[0.45em] uppercase text-white/30">
+                <div className="font-black text-[11px] tracking-[0.45em] uppercase text-white/30 hidden">
                     VEP · Loading
                 </div>
             </div>

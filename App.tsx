@@ -7,26 +7,14 @@ import InteractiveGridBackground from './components/InteractiveGridBackground';
 import Header from './components/header';
 import HeroSection from './components/HeroSection';
 import LoadingScreen from './components/LoadingScreen';
-// import DevToolsOverlay from './components/DevToolsOverlay';
+import DevToolsOverlay from './components/DevToolsOverlay';
 import Lenis from 'lenis';
 
 // Lazy load below-the-fold components to slash main-thread TBT (Total Blocking Time)
-const ShowreelPage = React.lazy(() => import('./components/ShowreelPage'));
-const HorizontalScrollSection = React.lazy(() => import('./components/HorizontalScrollSection'));
-const StopMotionSection = React.lazy(() => import('./components/StopMotionSection'));
-const Footer = React.lazy(() => import('./components/Footer'));
-
-// ─────────────────────────────────────────────────────────────────────────────
-// AppReadySignal — mounts inside Suspense so it only runs after ALL lazy
-// chunks have successfully resolved. Dispatches 'app:ready' so LoadingScreen
-// knows it is safe to fade out without flashing partial content.
-// ─────────────────────────────────────────────────────────────────────────────
-function AppReadySignal() {
-  useEffect(() => {
-    window.dispatchEvent(new CustomEvent('app:ready'));
-  }, []);
-  return null;
-}
+import ShowreelPage from './components/ShowreelPage';
+import HorizontalScrollSection from './components/HorizontalScrollSection';
+import StopMotionSection from './components/StopMotionSection';
+import Footer from './components/Footer';
 
 function App() {
   useLayoutEffect(() => {
@@ -61,22 +49,17 @@ function App() {
   }, []);
 
   return (
-    <div className="relative min-h-screen bg-[#000000]">
-      {/* <DevToolsOverlay /> */}
+    <div className="relative min-h-screen bg-[#000000] overflow-x-hidden w-full">
+      <DevToolsOverlay />
       <LoadingScreen />
       <InteractiveGridBackground />
       <Header />
       <HeroSection />
 
-      {/* Defer loading/executing heavy GSAP components until Hero is painted */}
-      <React.Suspense fallback={<div className="min-h-screen bg-black" />}>
-        <ShowreelPage />
-        <HorizontalScrollSection />
-        <StopMotionSection />
-        <Footer />
-        {/* Fires 'app:ready' only after all lazy chunks above have mounted */}
-        <AppReadySignal />
-      </React.Suspense>
+      <ShowreelPage />
+      <HorizontalScrollSection />
+      <StopMotionSection />
+      <Footer />
     </div>
   );
 }
