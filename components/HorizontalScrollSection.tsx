@@ -3,6 +3,7 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { useHaptics } from '../hooks/useHaptics';
+import { getReels } from '../services/reelsService';
 
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 const CLIPS = [
@@ -1323,9 +1324,26 @@ const WaveformTextCarousel: React.FC<{ onActiveChange?: (idx: number) => void }>
 const HorizontalScrollSection: React.FC = () => {
   const rootRef = useRef<HTMLDivElement>(null);
   const clipsRef = useRef<HTMLDivElement>(null);
+  const [clipsList, setClipsList] = useState(CLIPS);
   const [hoveredStep, setHoveredStep] = useState<number | null>(null);
   const [wfActive, setWfActive] = useState(0);
   const { trigger } = useHaptics();
+
+  useEffect(() => {
+    getReels().then((data) => {
+      if (data && data.length > 0) {
+        const mapped = data.map((item) => ({
+          title: item.title,
+          meta: `${item.tag || item.category} · ${item.year}`,
+          color: item.color || '#1152d4',
+          bg: item.color ? `${item.color}15` : '#040e2a',
+          year: item.year,
+          videoSrc: item.videoSrc,
+        }));
+        setClipsList(mapped);
+      }
+    }).catch(() => {});
+  }, []);
 
   // ── Drag-to-scroll ───────────────────────────────────────────────────────
   const drag = useRef({ down: false, startX: 0, scrollLeft: 0 });
@@ -1476,7 +1494,7 @@ const HorizontalScrollSection: React.FC = () => {
       <div
         className="pt-20 pb-28"
         id="showreel"
-        aria-label="Latest clips — 07 projects"
+        aria-label={`Latest clips — ${String(clipsList.length).padStart(2, '0')} projects`}
         style={{ scrollMarginTop: '80px' }}
       >
         {/* header */}
@@ -1492,7 +1510,9 @@ const HorizontalScrollSection: React.FC = () => {
               </span>
             </h2>
             <div className="text-right mb-1">
-              <span className="font-mono text-[10px] tracking-[0.2em] text-white/25 uppercase block">07 Projects</span>
+              <span className="font-mono text-[10px] tracking-[0.2em] text-white/25 uppercase block">
+                {String(clipsList.length).padStart(2, '0')} Projects
+              </span>
               <span className="font-mono text-[9px] tracking-[0.15em] text-white/15 uppercase">2025 - 2026</span>
             </div>
           </div>
@@ -1510,7 +1530,7 @@ const HorizontalScrollSection: React.FC = () => {
           onMouseUp={onMouseUp}
           onMouseMove={onMouseMove}
         >
-          {CLIPS.map((clip, i) => (
+          {clipsList.map((clip, i) => (
             <div key={i} className="clip-card-item flex-shrink-0" role="listitem">
               <ClipCard index={i} {...clip} />
             </div>

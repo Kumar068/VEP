@@ -78,11 +78,19 @@ async function saveLocalCustomReel(reel: ReelData, videoBlob?: Blob): Promise<vo
   try {
     const db = await openDB();
     if (videoBlob && reel.filename) {
-      const txBlob = db.transaction(BLOBS_STORE, 'readwrite');
-      txBlob.objectStore(BLOBS_STORE).put(videoBlob, reel.filename);
+      await new Promise<void>((resolve, reject) => {
+        const tx = db.transaction(BLOBS_STORE, 'readwrite');
+        tx.oncomplete = () => resolve();
+        tx.onerror = () => reject(tx.error);
+        tx.objectStore(BLOBS_STORE).put(videoBlob, reel.filename);
+      });
     }
-    const txReels = db.transaction(REELS_STORE, 'readwrite');
-    txReels.objectStore(REELS_STORE).put(reel);
+    await new Promise<void>((resolve, reject) => {
+      const tx = db.transaction(REELS_STORE, 'readwrite');
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+      tx.objectStore(REELS_STORE).put(reel);
+    });
   } catch (e) {
     console.warn('IndexedDB save failed:', e);
   }
@@ -234,6 +242,7 @@ export async function uploadReel(
         }
       };
       xhr.onerror = () => reject(new Error('Network error'));
+      xhr.send(formData);
     });
 
     return await promise;
