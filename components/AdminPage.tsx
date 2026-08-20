@@ -33,11 +33,7 @@ const CATEGORY_OPTIONS = [
   'VFX / COMPOSITING',
 ];
 
-const TAG_OPTIONS = [
-  'COMMERCIAL', 'MUSIC VIDEO', 'SHORT FILM', 'DOCUMENTARY',
-  'BRAND FILM', 'ART FILM', 'FEATURE', 'DOCU', 'SCI-FI',
-  'EXPERIMENTAL', 'DIGITAL', 'NARRATIVE',
-];
+
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -67,7 +63,7 @@ function UploadForm({ onUploaded }: UploadFormProps) {
   const [file, setFile]           = useState<File | null>(null);
   const [title, setTitle]         = useState('');
   const [category, setCategory]   = useState(CATEGORY_OPTIONS[0]);
-  const [tag, setTag]             = useState(TAG_OPTIONS[0]);
+  const [tag, setTag]             = useState('COMMERCIAL');
   const [year, setYear]           = useState(new Date().getFullYear().toString());
   const [color, setColor]         = useState('#1152d4');
   const [dragging, setDragging]   = useState(false);
@@ -185,10 +181,8 @@ function UploadForm({ onUploaded }: UploadFormProps) {
 
         <label style={styles.label}>
           Tag
-          <select id="field-tag" style={styles.select} value={tag}
-            onChange={e => setTag(e.target.value)}>
-            {TAG_OPTIONS.map(t => <option key={t} value={t}>{t}</option>)}
-          </select>
+          <input id="field-tag" style={styles.input} value={tag}
+            onChange={e => setTag(e.target.value)} placeholder="e.g. COMMERCIAL" />
         </label>
 
         <label style={styles.label}>
@@ -308,9 +302,7 @@ function EditPanel({ reel, onClose, onSaved }: EditPanelProps) {
             </label>
             <label style={styles.label}>
               Tag
-              <select style={styles.select} value={tag} onChange={e => setTag(e.target.value)}>
-                {TAG_OPTIONS.map(t => <option key={t}>{t}</option>)}
-              </select>
+              <input style={styles.input} value={tag} onChange={e => setTag(e.target.value)} placeholder="e.g. COMMERCIAL" />
             </label>
             <label style={styles.label}>
               Year
