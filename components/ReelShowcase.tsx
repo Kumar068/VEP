@@ -117,7 +117,7 @@ const ReelShowcase: React.FC = () => {
         scrub: 1,
       },
     });
-  }, { scope: containerRef, dependencies: [visibleCount] });
+  }, { scope: containerRef });
 
   const handleReelLoad = (id: number) => {
     setLoadedReels(prev => new Set(prev).add(id));
