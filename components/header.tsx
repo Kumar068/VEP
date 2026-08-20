@@ -1,6 +1,7 @@
 import React, { useRef, useEffect, useState } from 'react';
 import { gsap } from 'gsap';
 import { useGSAP } from '@gsap/react';
+import { useNavigate } from 'react-router-dom';
 import { useHaptics } from '../hooks/useHaptics';
 
 const Header: React.FC = () => {
@@ -9,6 +10,7 @@ const Header: React.FC = () => {
   const navRef = useRef<HTMLDivElement>(null);
   const ctaRef = useRef<HTMLAnchorElement>(null);
   const { trigger } = useHaptics();
+  const navigate = useNavigate();
   const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
@@ -134,17 +136,22 @@ const Header: React.FC = () => {
       {/* 2. NAVIGATION */}
       <nav ref={navRef} className="relative z-10 hidden md:flex items-center gap-12">
         {([
-          { label: 'Work', id: 'work' },
-          { label: 'Showreel', id: 'showreel' },
-          { label: 'Process', id: 'process' },
-          { label: 'About', id: 'about' },
-        ] as { label: string; id: string }[]).map(({ label, id }) => (
+          { label: 'Work', id: 'work', route: null },
+          { label: 'Projects', id: 'projects', route: '/projects' },
+          { label: 'Process', id: 'process', route: null },
+          { label: 'About', id: 'about', route: null },
+        ] as { label: string; id: string; route: string | null }[]).map(({ label, id, route }) => (
           <a
             key={id}
-            href={`#${id}`}
+            href={route ?? `#${id}`}
             onClick={(e) => {
               e.preventDefault();
-              document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+              trigger('nudge');
+              if (route) {
+                navigate(route);
+              } else {
+                document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+              }
             }}
             className="nav-link text-gray-400 text-xs font-bold uppercase tracking-[0.2em] font-display transition-colors"
             onMouseEnter={handleLinkHover}
