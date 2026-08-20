@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import gsap from 'gsap';
 import { useNavigate } from 'react-router-dom';
 import { ReelData } from '../types';
+import { getReels } from '../services/reelsService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Fibonacci Sphere — evenly distributes N points on a sphere of given radius
@@ -59,9 +60,7 @@ function useFetchReels() {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch('/api/reels');
-      if (!res.ok) throw new Error(`API ${res.status}`);
-      const data: ReelData[] = await res.json();
+      const data = await getReels(false);
       setReels(data);
     } catch (e: any) {
       setError(e.message ?? 'Failed to load reels');

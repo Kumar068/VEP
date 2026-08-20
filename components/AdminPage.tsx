@@ -11,6 +11,7 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ReelData } from '../types';
+import { getReels, uploadReel, updateReel, deleteReel } from '../services/reelsService';
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Accent palette — quick color picker swatches
@@ -92,7 +93,7 @@ function UploadForm({ onUploaded }: UploadFormProps) {
     if (f) acceptFile(f);
   }, [title]); // eslint-disable-line
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file || !title.trim()) { setErr('Title and video file are required.'); return; }
 
@@ -104,29 +105,18 @@ function UploadForm({ onUploaded }: UploadFormProps) {
     fd.append('year', year);
     fd.append('color', color);
 
-    const xhr = new XMLHttpRequest();
-    xhr.open('POST', '/api/reels');
-
-    xhr.upload.onprogress = (ev) => {
-      if (ev.lengthComputable) setProgress(Math.round((ev.loaded / ev.total) * 100));
-    };
-
-    xhr.onload = () => {
-      setUploading(false);
-      if (xhr.status === 201) {
-        setSuccess(true);
-        setFile(null); setTitle(''); setProgress(0);
-        setTimeout(() => { setSuccess(false); onUploaded(); }, 1800);
-      } else {
-        try { setErr(JSON.parse(xhr.responseText).error); } catch { setErr('Upload failed'); }
-      }
-    };
-
-    xhr.onerror = () => { setUploading(false); setErr('Network error during upload.'); };
-
     setUploading(true);
     setErr(null);
-    xhr.send(fd);
+    try {
+      await uploadReel(fd, (pct) => setProgress(pct));
+      setSuccess(true);
+      setFile(null); setTitle(''); setProgress(0);
+      setTimeout(() => { setSuccess(false); onUploaded(); }, 1800);
+    } catch (e: any) {
+      setErr(e.message || 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
   };
 
   return (
@@ -270,12 +260,7 @@ function EditPanel({ reel, onClose, onSaved }: EditPanelProps) {
     setSaving(true);
     setErr(null);
     try {
-      const res = await fetch(`/api/reels/${reel.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title, category, tag, year, color, visible }),
-      });
-      if (!res.ok) throw new Error((await res.json()).error);
+      await updateReel(reel.id, { title, category, tag, year, color, visible });
       onSaved();
       onClose();
     } catch (e: any) {
@@ -486,8 +471,8 @@ export default function AdminPage() {
 
   const fetchReels = async () => {
     try {
-      const res = await fetch('/api/reels/all');
-      if (res.ok) setReels(await res.json());
+      const data = await getReels(true);
+      setReels(data);
     } catch { /* noop */ }
     finally { setLoading(false); }
   };
@@ -495,20 +480,13 @@ export default function AdminPage() {
   useEffect(() => { fetchReels(); }, []);
 
   const handleDelete = async (id: string) => {
-    await fetch(`/api/reels/${id}`, { method: 'DELETE' });
+    await deleteReel(id);
     setReels(prev => prev.filter(r => r.id !== id));
   };
 
   const handleToggleVisible = async (reel: ReelData) => {
-    const res = await fetch(`/api/reels/${reel.id}`, {
-      method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ visible: !reel.visible }),
-    });
-    if (res.ok) {
-      const updated: ReelData = await res.json();
-      setReels(prev => prev.map(r => r.id === updated.id ? updated : r));
-    }
+    const updated = await updateReel(reel.id, { visible: !reel.visible });
+    setReels(prev => prev.map(r => r.id === updated.id ? updated : r));
   };
 
   const filtered = reels.filter(r =>

@@ -4,6 +4,8 @@ import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 
+import { getReels } from '../services/reelsService';
+
 gsap.registerPlugin(ScrollTrigger, useGSAP);
 
 interface Reel {
@@ -17,7 +19,7 @@ interface Reel {
   color: string;
 }
 
-const REELS: Reel[] = [
+const DEFAULT_REELS: Reel[] = [
   { id: 1, title: 'Ember & Ash', category: 'Commercial', year: '2025', duration: '02:30', thumbnail: '/content/reels/reel-01.mp4', video: '/content/reels/reel-01.mp4', color: '#1152d4' },
   { id: 2, title: 'Pulse', category: 'Music Video', year: '2025', duration: '04:12', thumbnail: '/content/reels/reel-02.mp4', video: '/content/reels/reel-02.mp4', color: '#f74a4a' },
   { id: 3, title: 'Meridian', category: 'Short Film', year: '2024', duration: '12:00', thumbnail: '/content/reels/reel-03.mp4', video: '/content/reels/reel-03.mp4', color: '#00c896' },
@@ -30,11 +32,30 @@ const REELS: Reel[] = [
 const ReelShowcase: React.FC = () => {
   const navigate = useNavigate();
   const containerRef = useRef<HTMLDivElement>(null);
+  const [reelsList, setReelsList] = useState<Reel[]>(DEFAULT_REELS);
   const [hoveredReel, setHoveredReel] = useState<number | null>(null);
   const [loadedReels, setLoadedReels] = useState<Set<number>>(new Set());
   const [selectedReel, setSelectedReel] = useState<Reel | null>(null);
   const [visibleCount, setVisibleCount] = useState(12); // Start with 3 rows (approx 12 items)
   const [itemsPerRow, setItemsPerRow] = useState(4); // Will be calculated dynamically
+
+  useEffect(() => {
+    getReels().then((data) => {
+      if (data && data.length > 0) {
+        const mapped: Reel[] = data.map((item, idx) => ({
+          id: idx + 1,
+          title: item.title,
+          category: item.tag || item.category,
+          year: item.year,
+          duration: 'HD',
+          thumbnail: item.videoSrc,
+          video: item.videoSrc,
+          color: item.color || '#1152d4',
+        }));
+        setReelsList(mapped);
+      }
+    }).catch(() => {});
+  }, []);
 
   // Calculate items per row based on screen width
   useEffect(() => {
@@ -52,11 +73,11 @@ const ReelShowcase: React.FC = () => {
   }, []);
 
   const initialVisibleCount = itemsPerRow * 3; // 3 rows
-  const visibleReels = REELS.slice(0, visibleCount);
-  const hasMore = visibleCount < REELS.length;
+  const visibleReels = reelsList.slice(0, visibleCount);
+  const hasMore = visibleCount < reelsList.length;
 
   const handleLoadMore = () => {
-    setVisibleCount(prev => Math.min(prev + itemsPerRow * 3, REELS.length)); // Load 3 more rows
+    setVisibleCount(prev => Math.min(prev + itemsPerRow * 3, reelsList.length)); // Load 3 more rows
   };
 
   useGSAP(() => {
@@ -254,7 +275,7 @@ const ReelShowcase: React.FC = () => {
             color: 'rgba(232,230,225,0.15)',
           }}
         >
-          07 Reels
+          {String(reelsList.length).padStart(2, '0')} Reels
         </div>
       </nav>
 
